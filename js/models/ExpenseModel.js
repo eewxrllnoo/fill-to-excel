@@ -1,4 +1,4 @@
-// Model - Manages data and business logic
+// js/models/ExpenseModel.js
 export class ExpenseModel {
     constructor() {
         this.expenses = [];
@@ -24,6 +24,9 @@ export class ExpenseModel {
 
     setFormData(data) {
         this.formData = { ...this.formData, ...data };
+        if (data.expenses) {
+            this.expenses = data.expenses;
+        }
         this.notifyListeners();
     }
 
@@ -40,9 +43,12 @@ export class ExpenseModel {
     }
 
     updateExpense(index, field, value) {
-        this.formData.expenses[index][field] = value;
-        this.expenses = this.formData.expenses;
-        this.notifyListeners();
+        if (this.formData.expenses[index]) {
+            this.formData.expenses[index][field] = value;
+            this.expenses = this.formData.expenses;
+            // Don't notify listeners for single field updates to prevent re-render
+            // Listeners will be notified only for structural changes
+        }
     }
 
     removeExpense(index) {
@@ -83,6 +89,17 @@ export class ExpenseModel {
         return totals;
     }
 
+    calculateTotalsForRow(expense) {
+        return (parseFloat(expense.transpo) || 0) + 
+               (parseFloat(expense.meal) || 0) + 
+               (parseFloat(expense.lodging) || 0) + 
+               (parseFloat(expense.materials) || 0) + 
+               (parseFloat(expense.print) || 0) + 
+               (parseFloat(expense.freight) || 0) + 
+               (parseFloat(expense.rental) || 0) + 
+               (parseFloat(expense.others) || 0);
+    }
+
     validate() {
         const errors = [];
         if (!this.formData.fieldEngineerName) errors.push('Engineer Name is required');
@@ -116,9 +133,21 @@ export class ExpenseModel {
 
     getEmptyExpense() {
         return {
-            activityDate: '', fpTicket: '', projectName: '', poNumber: '', launchPoint: '',
-            clientAddress: '', distance: '', transpo: 0, meal: 0, lodging: 0, materials: 0,
-            print: 0, freight: 0, rental: 0, others: 0
+            activityDate: '',
+            fpTicket: '',
+            projectName: '',
+            poNumber: '',
+            launchPoint: '',
+            clientAddress: '',
+            distance: '',
+            transpo: 0,
+            meal: 0,
+            lodging: 0,
+            materials: 0,
+            print: 0,
+            freight: 0,
+            rental: 0,
+            others: 0
         };
     }
 }

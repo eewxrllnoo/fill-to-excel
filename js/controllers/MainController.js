@@ -1,11 +1,11 @@
-// Controller - Coordinates everything
+// js/controllers/MainController.js
 import { ExpenseModel } from '../models/ExpenseModel.js';
 import { FormView } from '../views/FormView.js';
 import { TableView } from '../views/TableView.js';
 import { SupabaseService } from '../services/SupabaseService.js';
 import { exportToExcel } from '../../utils/excelExporter.js';
 
-// IMPORTANT: REPLACE WITH YOUR ACTUAL SUPABASE CREDENTIALS
+// YOUR SUPABASE CREDENTIALS - REPLACE WITH YOUR ACTUAL VALUES
 const SUPABASE_URL = 'https://tatrpmfidwweefgldcix.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_hqs3bgkdNpNu0GfkPa__-A_3-p-oyjO';
 
@@ -16,6 +16,7 @@ export class MainController {
         this.view = new FormView('app');
         this.tableView = null;
         this.isConnected = false;
+        this.skipNextRender = false;
         
         this.init();
     }
@@ -32,9 +33,12 @@ export class MainController {
         this.view.onLoadLocal = () => this.handleLoadLocal();
         this.view.onReset = () => this.handleReset();
         
-        // Model subscription
-        this.model.addListener(() => {
-            const formData = this.model.getFormData();
+        // Model subscription - updates view when data changes
+        this.model.addListener((formData) => {
+            if (this.skipNextRender) {
+                this.skipNextRender = false;
+                return;
+            }
             const totals = this.model.calculateTotals();
             this.view.render(formData, totals, this.isConnected);
         });
@@ -59,14 +63,49 @@ export class MainController {
 
     handleAddExpense() {
         this.model.addExpense(this.model.getEmptyExpense());
+        this.view.showMessage('New expense row added', 'info');
     }
 
     handleRemoveExpense(index) {
-        this.model.removeExpense(index);
+        if (confirm('Remove this expense entry?')) {
+            this.model.removeExpense(index);
+            this.view.showMessage('Expense entry removed', 'info');
+        }
     }
 
     handleUpdateExpense(index, field, value) {
-        this.model.updateExpense(index, field, value);
+        // Directly update the expense in the model
+        const expenses = this.model.getExpenses();
+        if (expenses[index]) {
+            expenses[index][field] = value;
+            
+            // Update the row total display
+            const rowTotal = this.calculateRowTotal(expenses[index]);
+            this.view.updateRowTotalDisplay(index, rowTotal);
+            
+            // Update grand total
+            const grandTotal = this.calculateGrandTotal(expenses);
+            this.view.updateGrandTotalDisplay(grandTotal);
+        }
+    }
+
+    calculateRowTotal(expense) {
+        return (parseFloat(expense.transpo) || 0) + 
+               (parseFloat(expense.meal) || 0) + 
+               (parseFloat(expense.lodging) || 0) + 
+               (parseFloat(expense.materials) || 0) + 
+               (parseFloat(expense.print) || 0) + 
+               (parseFloat(expense.freight) || 0) + 
+               (parseFloat(expense.rental) || 0) + 
+               (parseFloat(expense.others) || 0);
+    }
+
+    calculateGrandTotal(expenses) {
+        let total = 0;
+        expenses.forEach(expense => {
+            total += this.calculateRowTotal(expense);
+        });
+        return total;
     }
 
     async handleSaveToCloud() {
@@ -164,7 +203,7 @@ export class MainController {
         const expenses = this.model.getExpenses();
         const totals = this.model.calculateTotals();
         
-        if (expenses.length === 0 || (expenses.length === 1 && !expenses[0].projectName)) {
+        if (expenses.length === 0 || (expenses.length === 1 && !expenses[0].projectName && !expenses[0].activityDate)) {
             this.view.showMessage('No expense entries to export!', 'error');
             return;
         }
