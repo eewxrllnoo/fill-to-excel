@@ -1,4 +1,4 @@
-// Model - Manages expense data and business logic
+// Model - Manages data and business logic
 export class ExpenseModel {
     constructor() {
         this.expenses = [];
@@ -7,7 +7,7 @@ export class ExpenseModel {
             dateCoverageStart: '',
             dateCoverageEnd: '',
             cluster: '',
-            dateFiled: '',
+            dateFiled: new Date().toISOString().split('T')[0],
             teamLead: '',
             expenses: []
         };
@@ -29,21 +29,25 @@ export class ExpenseModel {
 
     setExpenses(expenses) {
         this.formData.expenses = expenses;
+        this.expenses = expenses;
         this.notifyListeners();
     }
 
     addExpense(expense) {
         this.formData.expenses.push(expense);
+        this.expenses = this.formData.expenses;
         this.notifyListeners();
     }
 
-    updateExpense(index, expense) {
-        this.formData.expenses[index] = expense;
+    updateExpense(index, field, value) {
+        this.formData.expenses[index][field] = value;
+        this.expenses = this.formData.expenses;
         this.notifyListeners();
     }
 
     removeExpense(index) {
         this.formData.expenses.splice(index, 1);
+        this.expenses = this.formData.expenses;
         this.notifyListeners();
     }
 
@@ -51,17 +55,14 @@ export class ExpenseModel {
         return this.formData;
     }
 
+    getExpenses() {
+        return this.formData.expenses;
+    }
+
     calculateTotals() {
         const totals = {
-            transpo: 0,
-            meal: 0,
-            lodging: 0,
-            materials: 0,
-            print: 0,
-            freight: 0,
-            rental: 0,
-            others: 0,
-            total: 0
+            transpo: 0, meal: 0, lodging: 0, materials: 0,
+            print: 0, freight: 0, rental: 0, others: 0, total: 0
         };
 
         this.formData.expenses.forEach(expense => {
@@ -84,16 +85,16 @@ export class ExpenseModel {
 
     validate() {
         const errors = [];
-        if (!this.formData.fieldEngineerName) errors.push('Field Engineer Name is required');
-        if (!this.formData.dateCoverageStart) errors.push('Date Coverage Start is required');
-        if (!this.formData.dateCoverageEnd) errors.push('Date Coverage End is required');
+        if (!this.formData.fieldEngineerName) errors.push('Engineer Name is required');
+        if (!this.formData.dateCoverageStart) errors.push('Start Date is required');
+        if (!this.formData.dateCoverageEnd) errors.push('End Date is required');
         if (!this.formData.cluster) errors.push('Cluster is required');
         if (!this.formData.teamLead) errors.push('Team Lead is required');
         if (this.formData.expenses.length === 0) errors.push('At least one expense entry is required');
         
         this.formData.expenses.forEach((expense, index) => {
-            if (!expense.activityDate) errors.push(`Expense ${index + 1}: Activity Date is required`);
-            if (!expense.projectName) errors.push(`Expense ${index + 1}: Project Name is required`);
+            if (!expense.activityDate) errors.push(`Entry ${index + 1}: Activity Date required`);
+            if (!expense.projectName) errors.push(`Entry ${index + 1}: Project Name required`);
         });
         
         return errors;
@@ -109,6 +110,15 @@ export class ExpenseModel {
             teamLead: '',
             expenses: []
         };
+        this.expenses = [];
         this.notifyListeners();
+    }
+
+    getEmptyExpense() {
+        return {
+            activityDate: '', fpTicket: '', projectName: '', poNumber: '', launchPoint: '',
+            clientAddress: '', distance: '', transpo: 0, meal: 0, lodging: 0, materials: 0,
+            print: 0, freight: 0, rental: 0, others: 0
+        };
     }
 }

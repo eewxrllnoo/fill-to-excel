@@ -1,151 +1,124 @@
-// View - Handles form rendering and user input
+// View - Handles UI rendering
 export class FormView {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
-        this.onSubmit = null;
         this.onAddExpense = null;
         this.onRemoveExpense = null;
         this.onUpdateExpense = null;
         this.onExport = null;
-        this.onSaveToDb = null;
-        this.onLoadRecords = null;
+        this.onSaveToCloud = null;
+        this.onLoadFromCloud = null;
+        this.onSaveLocal = null;
+        this.onLoadLocal = null;
         this.onReset = null;
     }
 
-    render(formData, totals) {
+    render(formData, totals, isConnected) {
         this.container.innerHTML = `
             <div class="header">
-                <h1>BASED ALLOWANCE REPLENISHMENT (FSO)</h1>
-                <p class="subtitle">Field Service Office - Expense Reimbursement System</p>
+                <h1><i class="fas fa-chart-line"></i> Reimbursement 2026</h1>
+                <p> ALS - Based Allowance Replenishment System</p>
+                <div class="status-badge ${isConnected ? 'status-connected' : 'status-disconnected'}">
+                    <i class="fas ${isConnected ? 'fa-shield-alt' : 'fa-cloud-slash'}"></i>
+                    ${isConnected ? 'Secure Cloud Active' : 'Offline Mode'}
+                </div>
             </div>
 
             <div class="card">
                 <form id="mainForm">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label>Field Engineers Name *</label>
-                            <input type="text" id="fieldEngineerName" value="${this.escapeHtml(formData.fieldEngineerName)}" required>
+                            <label><i class="fas fa-user"></i> Field Engineers Name *</label>
+                            <input type="text" id="fieldEngineerName" value="${this.escapeHtml(formData.fieldEngineerName)}" placeholder="Enter engineer name">
                         </div>
                         <div class="form-group">
-                            <label>Date Coverage (Start) *</label>
-                            <input type="date" id="dateCoverageStart" value="${formData.dateCoverageStart}" required>
+                            <label><i class="fas fa-calendar"></i> Date Coverage (Start) *</label>
+                            <input type="date" id="dateCoverageStart" value="${formData.dateCoverageStart}">
                         </div>
                         <div class="form-group">
-                            <label>Date Coverage (End) *</label>
-                            <input type="date" id="dateCoverageEnd" value="${formData.dateCoverageEnd}" required>
+                            <label><i class="fas fa-calendar"></i> Date Coverage (End) *</label>
+                            <input type="date" id="dateCoverageEnd" value="${formData.dateCoverageEnd}">
                         </div>
                         <div class="form-group">
-                            <label>Cluster *</label>
-                            <input type="text" id="cluster" value="${this.escapeHtml(formData.cluster)}" required>
+                            <label><i class="fas fa-network-wired"></i> Cluster *</label>
+                            <input type="text" id="cluster" value="${this.escapeHtml(formData.cluster)}" placeholder="Enter cluster">
                         </div>
                         <div class="form-group">
-                            <label>Date Filed</label>
-                            <input type="date" id="dateFiled" value="${formData.dateFiled || new Date().toISOString().split('T')[0]}" readonly style="background: #f7fafc;">
+                            <label><i class="fas fa-clock"></i> Date Filed</label>
+                            <input type="date" id="dateFiled" value="${formData.dateFiled}" readonly>
                         </div>
                         <div class="form-group">
-                            <label>Team Lead *</label>
-                            <input type="text" id="teamLead" value="${this.escapeHtml(formData.teamLead)}" required>
+                            <label><i class="fas fa-users"></i> Team Lead *</label>
+                            <input type="text" id="teamLead" value="${this.escapeHtml(formData.teamLead)}" placeholder="Enter team lead">
                         </div>
                     </div>
 
-                    <div style="margin: 20px 0;">
-                        <h3>Expense Entries</h3>
-                        <button type="button" id="addExpenseBtn" class="btn btn-info" style="margin-top: 10px;">+ Add Expense Entry</button>
+                    <div style="margin: 24px 0;">
+                        <h3><i class="fas fa-receipt"></i> Expense Entries</h3>
+                        <button type="button" id="addExpenseBtn" class="btn btn-info" style="margin-top: 12px;">
+                            <i class="fas fa-plus"></i> Add Expense Entry
+                        </button>
                     </div>
 
-                    <div id="expensesContainer" class="expenses-list">
-                        ${this.renderExpenses(formData.expenses)}
-                    </div>
-
+                    <div id="expensesContainer">${this.renderExpenses(formData.expenses)}</div>
                     ${this.renderSummary(totals)}
 
                     <div class="action-buttons">
-                        <button type="submit" class="btn btn-primary">💾 Save to Database</button>
-                        <button type="button" id="exportExcelBtn" class="btn btn-secondary">📊 Export to Excel (FSO Format)</button>
-                        <button type="button" id="loadRecordsBtn" class="btn btn-info">📋 Load Previous Records</button>
-                        <button type="button" id="resetBtn" class="btn btn-danger">🔄 Reset Form</button>
+                        <button type="button" id="saveToCloudBtn" class="btn btn-primary">
+                            <i class="fas fa-cloud-upload-alt"></i> Sync to Cloud
+                        </button>
+                        <button type="button" id="loadFromCloudBtn" class="btn btn-info">
+                            <i class="fas fa-cloud-download-alt"></i> Load from Cloud
+                        </button>
+                        <button type="button" id="exportExcelBtn" class="btn btn-secondary">
+                            <i class="fas fa-file-excel"></i> Export to Excel
+                        </button>
+                        <button type="button" id="saveLocalBtn" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Local Backup
+                        </button>
+                        <button type="button" id="loadLocalBtn" class="btn btn-info">
+                            <i class="fas fa-folder-open"></i> Restore Backup
+                        </button>
+                        <button type="button" id="resetBtn" class="btn btn-danger">
+                            <i class="fas fa-trash-alt"></i> Reset Form
+                        </button>
                     </div>
                 </form>
-
                 <div id="message" class="message"></div>
             </div>
         `;
-
         this.attachEvents();
     }
 
     renderExpenses(expenses) {
         if (!expenses || expenses.length === 0) {
-            return '<div style="text-align: center; padding: 40px; color: #a0aec0;">No expense entries yet. Click "Add Expense Entry" to begin.</div>';
+            return '<div style="text-align: center; padding: 60px; color: var(--gray);"><i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>No expense entries yet.</div>';
         }
 
         return expenses.map((expense, index) => `
             <div class="expense-row" data-index="${index}">
                 <div class="expense-header">
-                    <span class="expense-title">Expense Entry #${index + 1}</span>
-                    <button type="button" class="remove-expense" data-index="${index}">Remove</button>
+                    <span class="expense-title"><i class="fas fa-receipt"></i> Entry #${index + 1}</span>
+                    <button type="button" class="remove-expense" data-index="${index}">
+                        <i class="fas fa-trash"></i> Remove
+                    </button>
                 </div>
                 <div class="expense-fields">
-                    <div class="form-group">
-                        <label>Activity Date *</label>
-                        <input type="date" class="activity-date" value="${expense.activityDate || ''}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>FP Ticket</label>
-                        <input type="text" class="fp-ticket" value="${this.escapeHtml(expense.fpTicket || '')}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Project Name *</label>
-                        <input type="text" class="project-name" value="${this.escapeHtml(expense.projectName || '')}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Purchase Order (PO#)</label>
-                        <input type="text" class="po-number" value="${this.escapeHtml(expense.poNumber || '')}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Launch Point</label>
-                        <input type="text" class="launch-point" value="${this.escapeHtml(expense.launchPoint || '')}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Client Address / Onsite Address</label>
-                        <input type="text" class="client-address" value="${this.escapeHtml(expense.clientAddress || '')}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Distance (KM)</label>
-                        <input type="number" step="0.1" class="distance" value="${expense.distance || ''}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Transpo (₱)</label>
-                        <input type="number" step="0.01" class="transpo" value="${expense.transpo || 0}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Meal (₱)</label>
-                        <input type="number" step="0.01" class="meal" value="${expense.meal || 0}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Lodging (₱)</label>
-                        <input type="number" step="0.01" class="lodging" value="${expense.lodging || 0}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Materials (₱)</label>
-                        <input type="number" step="0.01" class="materials" value="${expense.materials || 0}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Print (₱)</label>
-                        <input type="number" step="0.01" class="print" value="${expense.print || 0}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Freight (₱)</label>
-                        <input type="number" step="0.01" class="freight" value="${expense.freight || 0}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Rental (₱)</label>
-                        <input type="number" step="0.01" class="rental" value="${expense.rental || 0}" data-index="${index}">
-                    </div>
-                    <div class="form-group">
-                        <label>Others (₱)</label>
-                        <input type="number" step="0.01" class="others" value="${expense.others || 0}" data-index="${index}">
-                    </div>
+                    <input type="date" class="activity-date" placeholder="Activity Date" value="${expense.activityDate || ''}" data-index="${index}">
+                    <input type="text" class="fp-ticket" placeholder="FP Ticket" value="${this.escapeHtml(expense.fpTicket || '')}" data-index="${index}">
+                    <input type="text" class="project-name" placeholder="Project Name *" value="${this.escapeHtml(expense.projectName || '')}" data-index="${index}">
+                    <input type="text" class="po-number" placeholder="PO Number" value="${this.escapeHtml(expense.poNumber || '')}" data-index="${index}">
+                    <input type="text" class="launch-point" placeholder="Launch Point" value="${this.escapeHtml(expense.launchPoint || '')}" data-index="${index}">
+                    <input type="text" class="client-address" placeholder="Client Address" value="${this.escapeHtml(expense.clientAddress || '')}" data-index="${index}">
+                    <input type="number" step="0.1" class="distance" placeholder="Distance (KM)" value="${expense.distance || ''}" data-index="${index}">
+                    <input type="number" step="0.01" class="transpo" placeholder="Transpo (₱)" value="${expense.transpo || 0}" data-index="${index}">
+                    <input type="number" step="0.01" class="meal" placeholder="Meal (₱)" value="${expense.meal || 0}" data-index="${index}">
+                    <input type="number" step="0.01" class="lodging" placeholder="Lodging (₱)" value="${expense.lodging || 0}" data-index="${index}">
+                    <input type="number" step="0.01" class="materials" placeholder="Materials (₱)" value="${expense.materials || 0}" data-index="${index}">
+                    <input type="number" step="0.01" class="print" placeholder="Print (₱)" value="${expense.print || 0}" data-index="${index}">
+                    <input type="number" step="0.01" class="freight" placeholder="Freight (₱)" value="${expense.freight || 0}" data-index="${index}">
+                    <input type="number" step="0.01" class="rental" placeholder="Rental (₱)" value="${expense.rental || 0}" data-index="${index}">
+                    <input type="number" step="0.01" class="others" placeholder="Others (₱)" value="${expense.others || 0}" data-index="${index}">
                 </div>
             </div>
         `).join('');
@@ -154,96 +127,43 @@ export class FormView {
     renderSummary(totals) {
         return `
             <div class="summary">
-                <h3>Summary</h3>
+                <h3><i class="fas fa-chart-pie"></i> Financial Summary</h3>
                 <div class="summary-grid">
-                    <div class="summary-item">
-                        <div class="summary-label">Total Transpo</div>
-                        <div class="summary-value">₱ ${totals.transpo.toFixed(2)}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-label">Total Meal</div>
-                        <div class="summary-value">₱ ${totals.meal.toFixed(2)}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-label">Total Lodging</div>
-                        <div class="summary-value">₱ ${totals.lodging.toFixed(2)}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-label">Total Materials</div>
-                        <div class="summary-value">₱ ${totals.materials.toFixed(2)}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-label">Total Print</div>
-                        <div class="summary-value">₱ ${totals.print.toFixed(2)}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-label">Total Freight</div>
-                        <div class="summary-value">₱ ${totals.freight.toFixed(2)}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-label">Total Rental</div>
-                        <div class="summary-value">₱ ${totals.rental.toFixed(2)}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-label">Total Others</div>
-                        <div class="summary-value">₱ ${totals.others.toFixed(2)}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-label"><strong>GRAND TOTAL</strong></div>
-                        <div class="summary-value"><strong>₱ ${totals.total.toFixed(2)}</strong></div>
-                    </div>
+                    <div class="summary-item"><div class="summary-value">₱ ${totals.transpo.toFixed(2)}</div><div><i class="fas fa-car"></i> Transpo</div></div>
+                    <div class="summary-item"><div class="summary-value">₱ ${totals.meal.toFixed(2)}</div><div><i class="fas fa-utensils"></i> Meal</div></div>
+                    <div class="summary-item"><div class="summary-value">₱ ${totals.lodging.toFixed(2)}</div><div><i class="fas fa-hotel"></i> Lodging</div></div>
+                    <div class="summary-item"><div class="summary-value">₱ ${totals.materials.toFixed(2)}</div><div><i class="fas fa-boxes"></i> Materials</div></div>
+                    <div class="summary-item"><div class="summary-value">₱ ${totals.print.toFixed(2)}</div><div><i class="fas fa-print"></i> Print</div></div>
+                    <div class="summary-item"><div class="summary-value">₱ ${totals.freight.toFixed(2)}</div><div><i class="fas fa-truck"></i> Freight</div></div>
+                    <div class="summary-item"><div class="summary-value">₱ ${totals.rental.toFixed(2)}</div><div><i class="fas fa-building"></i> Rental</div></div>
+                    <div class="summary-item"><div class="summary-value">₱ ${totals.others.toFixed(2)}</div><div><i class="fas fa-ellipsis-h"></i> Others</div></div>
+                    <div class="summary-item"><div class="summary-value" style="font-size: 28px;">₱ ${totals.total.toFixed(2)}</div><div><i class="fas fa-crown"></i> GRAND TOTAL</div></div>
                 </div>
             </div>
         `;
     }
 
     attachEvents() {
-        const form = document.getElementById('mainForm');
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                if (this.onSaveToDb) this.onSaveToDb();
-            });
-        }
+        document.getElementById('addExpenseBtn')?.addEventListener('click', () => this.onAddExpense?.());
+        document.getElementById('exportExcelBtn')?.addEventListener('click', () => this.onExport?.());
+        document.getElementById('saveToCloudBtn')?.addEventListener('click', () => this.onSaveToCloud?.());
+        document.getElementById('loadFromCloudBtn')?.addEventListener('click', () => this.onLoadFromCloud?.());
+        document.getElementById('saveLocalBtn')?.addEventListener('click', () => this.onSaveLocal?.());
+        document.getElementById('loadLocalBtn')?.addEventListener('click', () => this.onLoadLocal?.());
+        document.getElementById('resetBtn')?.addEventListener('click', () => this.onReset?.());
 
-        const addBtn = document.getElementById('addExpenseBtn');
-        if (addBtn && this.onAddExpense) {
-            addBtn.addEventListener('click', () => this.onAddExpense());
-        }
-
-        const exportBtn = document.getElementById('exportExcelBtn');
-        if (exportBtn && this.onExport) {
-            exportBtn.addEventListener('click', () => this.onExport());
-        }
-
-        const loadBtn = document.getElementById('loadRecordsBtn');
-        if (loadBtn && this.onLoadRecords) {
-            loadBtn.addEventListener('click', () => this.onLoadRecords());
-        }
-
-        const resetBtn = document.getElementById('resetBtn');
-        if (resetBtn && this.onReset) {
-            resetBtn.addEventListener('click', () => this.onReset());
-        }
-
-        // Delegate events for dynamic expense fields
         this.container.addEventListener('input', (e) => {
-            if (e.target.classList && this.onUpdateExpense) {
-                const index = e.target.dataset.index;
-                if (index !== undefined) {
-                    const field = e.target.className.split(' ')[0];
-                    const value = e.target.value;
-                    this.onUpdateExpense(parseInt(index), field, value);
-                }
+            const index = e.target.dataset.index;
+            if (index !== undefined && this.onUpdateExpense) {
+                const field = e.target.className.split(' ')[0];
+                this.onUpdateExpense(parseInt(index), field, e.target.value);
             }
         });
 
         this.container.addEventListener('click', (e) => {
-            if (e.target.classList && e.target.classList.contains('remove-expense') && this.onRemoveExpense) {
+            if (e.target.classList?.contains('remove-expense')) {
                 const index = e.target.dataset.index;
-                if (index !== undefined) {
-                    this.onRemoveExpense(parseInt(index));
-                }
+                if (index !== undefined) this.onRemoveExpense?.(parseInt(index));
             }
         });
     }
@@ -260,24 +180,19 @@ export class FormView {
     }
 
     showMessage(text, type) {
-        const messageDiv = document.getElementById('message');
-        if (messageDiv) {
-            messageDiv.textContent = text;
-            messageDiv.className = `message ${type}`;
-            setTimeout(() => {
-                messageDiv.className = 'message';
-            }, 5000);
+        const msgDiv = document.getElementById('message');
+        if (msgDiv) {
+            msgDiv.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${text}`;
+            msgDiv.className = `message ${type}`;
+            setTimeout(() => { msgDiv.className = 'message'; }, 3000);
         }
     }
 
-    setLoading(isLoading) {
+    setLoading(show) {
         const loadingDiv = document.getElementById('loading');
         if (loadingDiv) {
-            if (isLoading) {
-                loadingDiv.classList.add('active');
-            } else {
-                loadingDiv.classList.remove('active');
-            }
+            if (show) loadingDiv.classList.add('active');
+            else loadingDiv.classList.remove('active');
         }
     }
 

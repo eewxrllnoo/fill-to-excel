@@ -1,80 +1,91 @@
-// Service - Handles Supabase database operations
+// Service - Handles Supabase operations
 export class SupabaseService {
-    constructor(url, key) {
-        this.supabase = window.supabase.createClient(url, key);
-        this.tableName = 'fso_expense_reports';
+    constructor(url, anonKey) {
+        this.url = url;
+        this.anonKey = anonKey;
+        this.client = null;
+        this.isConnected = false;
+    }
+
+    async init() {
+        try {
+            this.client = window.supabase.createClient(this.url, this.anonKey);
+            
+            const { error } = await this.client
+                .from('fso_reports')
+                .select('count', { count: 'exact', head: true });
+            
+            if (error) {
+                console.warn('Supabase connection warning:', error.message);
+                this.isConnected = false;
+                return { success: false, error: error.message };
+            }
+            
+            this.isConnected = true;
+            return { success: true };
+        } catch (error) {
+            console.error('Supabase init error:', error);
+            this.isConnected = false;
+            return { success: false, error: error.message };
+        }
     }
 
     async saveReport(reportData) {
+        if (!this.isConnected) {
+            return { success: false, error: 'Not connected to Supabase' };
+        }
+
         try {
-            const { data, error } = await this.supabase
-                .from(this.tableName)
+            const { data, error } = await this.client
+                .from('fso_reports')
                 .insert([reportData])
                 .select();
             
             if (error) throw error;
             return { success: true, data: data[0] };
         } catch (error) {
-            console.error('Error saving report:', error);
             return { success: false, error: error.message };
         }
     }
 
     async getAllReports() {
+        if (!this.isConnected) {
+            return { success: false, error: 'Not connected to Supabase' };
+        }
+
         try {
-            const { data, error } = await this.supabase
-                .from(this.tableName)
+            const { data, error } = await this.client
+                .from('fso_reports')
                 .select('*')
                 .order('created_at', { ascending: false });
             
             if (error) throw error;
-            return { success: true, data };
+            return { success: true, data: data || [] };
         } catch (error) {
-            console.error('Error fetching reports:', error);
             return { success: false, error: error.message };
         }
     }
 
-    async getReportsByEngineer(engineerName) {
+    async getReportById(id) {
+        if (!this.isConnected) {
+            return { success: false, error: 'Not connected to Supabase' };
+        }
+
         try {
-            const { data, error } = await this.supabase
-                .from(this.tableName)
+            const { data, error } = await this.client
+                .from('fso_reports')
                 .select('*')
-                .eq('field_engineer_name', engineerName)
-                .order('created_at', { ascending: false });
+                .eq('id', id)
+                .single();
             
             if (error) throw error;
             return { success: true, data };
         } catch (error) {
-            console.error('Error fetching reports:', error);
             return { success: false, error: error.message };
         }
     }
 
-    async deleteReport(id) {
-        try {
-            const { error } = await this.supabase
-                .from(this.tableName)
-                .delete()
-                .eq('id', id);
-            
-            if (error) throw error;
-            return { success: true };
-        } catch (error) {
-            console.error('Error deleting report:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    subscribeToChanges(callback) {
-        return this.supabase
-            .channel('fso_reports_changes')
-            .on('postgres_changes', 
-                { event: '*', schema: 'public', table: this.tableName }, 
-                () => {
-                    callback();
-                }
-            )
-            .subscribe();
+    isConnectedToCloud() {
+        return this.isConnected;
     }
 }
