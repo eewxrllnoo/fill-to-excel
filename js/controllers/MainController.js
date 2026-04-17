@@ -16,7 +16,6 @@ export class MainController {
         this.view = new FormView('app');
         this.tableView = null;
         this.isConnected = false;
-        this.skipNextRender = false;
         
         this.init();
     }
@@ -35,10 +34,6 @@ export class MainController {
         
         // Model subscription - updates view when data changes
         this.model.addListener((formData) => {
-            if (this.skipNextRender) {
-                this.skipNextRender = false;
-                return;
-            }
             const totals = this.model.calculateTotals();
             this.view.render(formData, totals, this.isConnected);
         });
@@ -67,33 +62,44 @@ export class MainController {
     }
 
     handleRemoveExpense(index) {
-        if (confirm('Remove this expense entry?')) {
-            this.model.removeExpense(index);
-            // Force re-render to update the table
+        // Show confirmation dialog
+        const confirmRemove = confirm('Remove this expense entry?');
+        
+        if (confirmRemove) {
+            console.log('Removing expense at index:', index);
+            
+            // Get current expenses
+            const expenses = this.model.getExpenses();
+            console.log('Before removal:', expenses.length);
+            
+            // Remove the expense
+            expenses.splice(index, 1);
+            this.model.setExpenses(expenses);
+            
+            console.log('After removal:', expenses.length);
+            
+            // Force re-render
             const formData = this.model.getFormData();
             const totals = this.model.calculateTotals();
             this.view.render(formData, totals, this.isConnected);
-            this.view.showMessage('Expense entry removed', 'info');
+            
+            this.view.showMessage('Expense entry removed', 'success');
         }
     }
 
     handleUpdateExpense(index, field, value) {
-        // Directly update the expense in the model
         const expenses = this.model.getExpenses();
         if (expenses[index]) {
             expenses[index][field] = value;
+            this.model.setExpenses(expenses);
             
-            // Update the row total display
+            // Update totals
+            const totals = this.model.calculateTotals();
+            this.view.updateGrandTotal(totals.total);
+            
+            // Update row total
             const rowTotal = this.calculateRowTotal(expenses[index]);
-            if (this.view && this.view.updateRowTotal) {
-                this.view.updateRowTotal(index, rowTotal);
-            }
-            
-            // Update grand total
-            const grandTotal = this.calculateGrandTotal(expenses);
-            if (this.view && this.view.updateGrandTotal) {
-                this.view.updateGrandTotal(grandTotal);
-            }
+            this.view.updateRowTotalDisplay(index, rowTotal);
         }
     }
 
@@ -106,14 +112,6 @@ export class MainController {
                (parseFloat(expense.freight) || 0) + 
                (parseFloat(expense.rental) || 0) + 
                (parseFloat(expense.others) || 0);
-    }
-
-    calculateGrandTotal(expenses) {
-        let total = 0;
-        expenses.forEach(expense => {
-            total += this.calculateRowTotal(expense);
-        });
-        return total;
     }
 
     async handleSaveToCloud() {
