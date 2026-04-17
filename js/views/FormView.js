@@ -15,12 +15,12 @@ export class FormView {
 
     render(formData, totals, isConnected) {
         this.container.innerHTML = `
-            <div class="header">
-                <h1>BASED ALLOWANCE REPLENISHMENT (FSO)</h1>
-                <div class="status-badge ${isConnected ? 'status-connected' : 'status-disconnected'}">
-                    ${isConnected ? 'Online ●' : '○ Offline Mode'}
-                </div>
+        <div class="header">
+            <h1>BASED ALLOWANCE REPLENISHMENT (FSO)</h1>
+            <div class="status-badge ${isConnected ? 'status-connected' : 'status-disconnected'}">
+                ${isConnected ? '● Online' : '○ Offline'}
             </div>
+        </div>
 
             <!-- Header Info Section -->
             <div class="info-section">

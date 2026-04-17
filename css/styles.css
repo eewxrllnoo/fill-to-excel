@@ -28,11 +28,11 @@ body {
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
 }
 
-/* Header */
+/* Header - Flex layout for left/right alignment */
 .header {
     background: white;
     border-radius: 12px;
@@ -40,13 +40,17 @@ body {
     margin-bottom: 20px;
     box-shadow: var(--shadow);
     border: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .header h1 {
     color: var(--dark);
     font-size: 18px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 0;
 }
 
 .status-badge {
@@ -114,14 +118,28 @@ body {
     outline: none;
 }
 
+/* Date Range Styles - Fixed Spacing */
 .date-range {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
-.date-range input {
-    width: 130px;
+.date-range input[type="date"] {
+    width: 145px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: 'Segoe UI', monospace;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+}
+
+.date-range span {
+    color: var(--gray);
+    font-size: 12px;
 }
 
 .rev-text {
@@ -134,17 +152,55 @@ body {
     border-left: 1px solid var(--border);
 }
 
-/* Table */
-.table-container {
-    background: white;
-    border-radius: 12px;
-    margin: 20px 0;
+/* Date Input General Styles */
+input[type="date"] {
+    width: 145px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: 'Segoe UI', monospace;
     border: 1px solid var(--border);
-    overflow-x: auto;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
 }
 
+/* Fix date picker icon spacing - Webkit browsers */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    margin-left: 8px;
+    padding: 4px;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* Fix for Firefox */
+input[type="date"] {
+    -moz-appearance: textfield;
+}
+
+/* Date Filed specific */
+#dateFiled {
+    width: 145px;
+    padding: 6px 10px;
+}
+
+/* Table Container - Makes table scrollable */
+.table-container {
+    overflow-x: auto;
+    overflow-y: visible;
+    margin: 20px 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+}
+
+/* Data Table */
 .data-table {
-    width: 100%;
+    width: max-content;
+    min-width: 100%;
     border-collapse: collapse;
     font-size: 12px;
 }
@@ -159,27 +215,69 @@ body {
     color: var(--gray);
     border-bottom: 1px solid var(--border);
     text-align: left;
+    white-space: nowrap;
 }
 
 .data-table td {
-    padding: 10px 8px;
+    padding: 8px 4px;
     border-bottom: 1px solid var(--border);
+    white-space: nowrap;
 }
 
 .data-table tr:last-child td {
     border-bottom: none;
 }
 
+/* Input fields inside table - WIDER for full text visibility */
 .data-table td input {
-    width: 100%;
-    min-width: 100px;
+    width: auto;
+    min-width: 120px;
+    max-width: 350px;
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 6px 8px;
+    padding: 8px 10px;
     font-size: 12px;
     transition: all 0.2s;
+    background: white;
 }
 
+/* Specific column widths for better visibility */
+.data-table th:nth-child(1) { min-width: 100px; }
+.data-table th:nth-child(2) { min-width: 100px; }
+.data-table th:nth-child(3) { min-width: 200px; }
+.data-table th:nth-child(4) { min-width: 130px; }
+.data-table th:nth-child(5) { min-width: 150px; }
+.data-table th:nth-child(6) { min-width: 300px; }
+.data-table th:nth-child(7) { min-width: 100px; }
+.data-table th:nth-child(8) { min-width: 90px; }
+.data-table th:nth-child(9) { min-width: 80px; }
+.data-table th:nth-child(10) { min-width: 90px; }
+.data-table th:nth-child(11) { min-width: 100px; }
+.data-table th:nth-child(12) { min-width: 80px; }
+.data-table th:nth-child(13) { min-width: 90px; }
+.data-table th:nth-child(14) { min-width: 80px; }
+.data-table th:nth-child(15) { min-width: 80px; }
+.data-table th:nth-child(16) { min-width: 90px; }
+.data-table th:nth-child(17) { min-width: 80px; }
+
+/* Specific input widths */
+.data-table td:nth-child(1) input { min-width: 100px; width: 100px; }
+.data-table td:nth-child(2) input { min-width: 100px; }
+.data-table td:nth-child(3) input { min-width: 200px; }
+.data-table td:nth-child(4) input { min-width: 130px; }
+.data-table td:nth-child(5) input { min-width: 200px; }
+.data-table td:nth-child(6) input { min-width: 350px; }
+.data-table td:nth-child(7) input { min-width: 90px; }
+.data-table td:nth-child(8) input { min-width: 90px; }
+.data-table td:nth-child(9) input { min-width: 80px; }
+.data-table td:nth-child(10) input { min-width: 90px; }
+.data-table td:nth-child(11) input { min-width: 100px; }
+.data-table td:nth-child(12) input { min-width: 80px; }
+.data-table td:nth-child(13) input { min-width: 90px; }
+.data-table td:nth-child(14) input { min-width: 80px; }
+.data-table td:nth-child(15) input { min-width: 80px; }
+
+/* Input focus style */
 .data-table td input:focus {
     outline: none;
     border-color: var(--primary);
@@ -194,6 +292,7 @@ body {
     text-align: right;
     font-weight: 600;
     background: #f8fafc;
+    padding-right: 10px;
 }
 
 .grand-total-row {
@@ -207,28 +306,31 @@ body {
     border-top: 2px solid var(--border);
 }
 
-/* Buttons */
+/* Remove Button */
 .remove-expense-btn {
     background: #fee2e2;
     color: #dc2626;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    padding: 5px 10px;
+    padding: 6px 12px;
     font-size: 11px;
     font-weight: 500;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .remove-expense-btn:hover {
     background: #fecaca;
 }
 
+/* Add Row Button */
 .add-row-btn {
     text-align: center;
     margin: 16px 0;
 }
 
+/* Action Buttons */
 .action-buttons {
     display: flex;
     gap: 10px;
@@ -351,7 +453,6 @@ body {
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     background: white;
-    border-radius: 50%;
 }
 
 @keyframes spin {
@@ -430,6 +531,12 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+    .data-table {
+        min-width: 1400px;
+    }
+}
+
 @media (max-width: 900px) {
     body {
         padding: 12px;
@@ -457,13 +564,36 @@ body {
         width: 100%;
         justify-content: center;
     }
-    
-    .data-table {
-        font-size: 11px;
+}
+
+@media (max-width: 600px) {
+    .header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
     }
     
-    .data-table td input {
-        min-width: 80px;
-        padding: 4px 6px;
+    .header h1 {
+        margin-bottom: 0;
     }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gray);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--dark);
 }
