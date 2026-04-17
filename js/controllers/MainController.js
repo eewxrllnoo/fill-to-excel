@@ -3,11 +3,11 @@ import { ExpenseModel } from '../models/ExpenseModel.js';
 import { FormView } from '../views/FormView.js';
 import { TableView } from '../views/TableView.js';
 import { SupabaseService } from '../services/SupabaseService.js';
-import { exportToExcel } from '../../utils/excelExporter.js';
+import { exportToExcel } from '../utils/excelExporter.js';
 
 // YOUR SUPABASE CREDENTIALS - REPLACE WITH YOUR ACTUAL VALUES
-const SUPABASE_URL = 'https://tatrpmfidwweefgldcix.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_hqs3bgkdNpNu0GfkPa__-A_3-p-oyjO';
+const SUPABASE_URL = 'https://tatrpnfidwweefgldcix.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publisbable_hqsbgkdnPnNu8GfkPa_A_3-p-o_';
 
 export class MainController {
     constructor() {
@@ -69,6 +69,10 @@ export class MainController {
     handleRemoveExpense(index) {
         if (confirm('Remove this expense entry?')) {
             this.model.removeExpense(index);
+            // Force re-render to update the table
+            const formData = this.model.getFormData();
+            const totals = this.model.calculateTotals();
+            this.view.render(formData, totals, this.isConnected);
             this.view.showMessage('Expense entry removed', 'info');
         }
     }
@@ -81,11 +85,15 @@ export class MainController {
             
             // Update the row total display
             const rowTotal = this.calculateRowTotal(expenses[index]);
-            this.view.updateRowTotalDisplay(index, rowTotal);
+            if (this.view && this.view.updateRowTotal) {
+                this.view.updateRowTotal(index, rowTotal);
+            }
             
             // Update grand total
             const grandTotal = this.calculateGrandTotal(expenses);
-            this.view.updateGrandTotalDisplay(grandTotal);
+            if (this.view && this.view.updateGrandTotal) {
+                this.view.updateGrandTotal(grandTotal);
+            }
         }
     }
 

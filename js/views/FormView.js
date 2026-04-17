@@ -15,12 +15,12 @@ export class FormView {
 
     render(formData, totals, isConnected) {
         this.container.innerHTML = `
-        <div class="header">
-            <h1>BASED ALLOWANCE REPLENISHMENT (FSO)</h1>
-            <div class="status-badge ${isConnected ? 'status-connected' : 'status-disconnected'}">
-                ${isConnected ? '● Online' : '○ Offline'}
+            <div class="header">
+                <h1>BASED ALLOWANCE REPLENISHMENT (FSO)</h1>
+                <div class="status-badge ${isConnected ? 'status-connected' : 'status-disconnected'}">
+                    ${isConnected ? '● Online' : '○ Offline'}
+                </div>
             </div>
-        </div>
 
             <!-- Header Info Section -->
             <div class="info-section">
@@ -115,9 +115,7 @@ export class FormView {
 
             <div id="message" class="message"></div>
         `;
-        
         this.attachEvents();
-        this.attachExpenseEvents();
     }
 
     renderExpenseRows(expenses) {
@@ -162,36 +160,21 @@ export class FormView {
                (parseFloat(expense.others) || 0);
     }
 
-    updateRowTotalDisplay(index, total) {
-        const rowTotalCell = document.querySelector(`.row-total[data-row-total="${index}"]`);
-        if (rowTotalCell) {
-            rowTotalCell.textContent = `₱ ${total.toFixed(2)}`;
-        }
-    }
-
-    updateGrandTotalDisplay(total) {
+    updateGrandTotal(total) {
         const grandTotalSpan = document.getElementById('grandTotalDisplay');
         if (grandTotalSpan) {
             grandTotalSpan.innerHTML = `<strong>₱ ${total.toFixed(2)}</strong>`;
         }
     }
 
-    attachExpenseEvents() {
-        // Use event delegation for input events
-        this.container.addEventListener('input', (e) => {
-            const target = e.target;
-            if (target.classList && target.classList.contains('expense-input')) {
-                const index = parseInt(target.getAttribute('data-index'));
-                const field = target.getAttribute('data-field');
-                let value = target.value;
-                
-                // Convert numeric values
-                if (target.type === 'number') {
-                    value = value === '' ? 0 : parseFloat(value);
-                }
-                
-                if (this.onUpdateExpense) {
-                    this.onUpdateExpense(index, field, value);
+    updateRowTotals(expenses) {
+        const rows = document.querySelectorAll('#expenseTableBody tr');
+        rows.forEach((row, index) => {
+            if (expenses[index]) {
+                const total = this.calculateRowTotal(expenses[index]);
+                const totalCell = row.querySelector('.row-total');
+                if (totalCell) {
+                    totalCell.textContent = `₱ ${total.toFixed(2)}`;
                 }
             }
         });
@@ -254,13 +237,33 @@ export class FormView {
             };
         }
 
-        // Remove expense buttons - event delegation
+        // Input events for expense fields
+        this.container.addEventListener('input', (e) => {
+            const target = e.target;
+            if (target.classList && target.classList.contains('expense-input')) {
+                const index = parseInt(target.getAttribute('data-index'));
+                const field = target.getAttribute('data-field');
+                let value = target.value;
+                
+                if (target.type === 'number') {
+                    value = value === '' ? 0 : parseFloat(value);
+                }
+                
+                if (this.onUpdateExpense) {
+                    this.onUpdateExpense(index, field, value);
+                }
+            }
+        });
+
+        // Remove expense buttons - FIXED: Using closest() to properly capture the button
         this.container.addEventListener('click', (e) => {
             const btn = e.target.closest('.remove-expense-btn');
             if (btn) {
-                const index = parseInt(btn.getAttribute('data-index'));
-                if (this.onRemoveExpense) {
-                    this.onRemoveExpense(index);
+                e.preventDefault();
+                e.stopPropagation();
+                const index = btn.getAttribute('data-index');
+                if (index !== null && this.onRemoveExpense) {
+                    this.onRemoveExpense(parseInt(index));
                 }
             }
         });
