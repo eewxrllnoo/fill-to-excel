@@ -21,7 +21,6 @@ export class MainController {
     }
 
     async init() {
-        // Setup callbacks
         this.view.onAddExpense = () => this.handleAddExpense();
         this.view.onRemoveExpense = (index) => this.handleRemoveExpense(index);
         this.view.onUpdateExpense = (index, field, value) => this.handleUpdateExpense(index, field, value);
@@ -32,21 +31,18 @@ export class MainController {
         this.view.onLoadLocal = () => this.handleLoadLocal();
         this.view.onReset = () => this.handleReset();
         
-        // Model subscription - updates view when data changes
         this.model.addListener((formData) => {
             const totals = this.model.calculateTotals();
             this.view.render(formData, totals, this.isConnected);
+            // Re-attach remove button events after re-render
+            setTimeout(() => this.reAttachRemoveEvents(), 100);
         });
         
-        // Initialize Supabase
         const result = await this.service.init();
         this.isConnected = result.success;
         
-        // Initial render
         const totals = this.model.calculateTotals();
         this.view.render(this.model.getFormData(), totals, this.isConnected);
-        
-        // Add initial empty expense
         this.model.addExpense(this.model.getEmptyExpense());
         
         if (this.isConnected) {
@@ -56,33 +52,31 @@ export class MainController {
         }
     }
 
+    reAttachRemoveEvents() {
+        const removeButtons = document.querySelectorAll('.remove-expense-btn');
+        removeButtons.forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const index = btn.getAttribute('data-index');
+                if (index !== null) {
+                    this.handleRemoveExpense(parseInt(index));
+                }
+            };
+        });
+    }
+
     handleAddExpense() {
         this.model.addExpense(this.model.getEmptyExpense());
         this.view.showMessage('New expense row added', 'info');
     }
 
     handleRemoveExpense(index) {
-        // Show confirmation dialog
         const confirmRemove = confirm('Remove this expense entry?');
-        
         if (confirmRemove) {
-            console.log('Removing expense at index:', index);
-            
-            // Get current expenses
             const expenses = this.model.getExpenses();
-            console.log('Before removal:', expenses.length);
-            
-            // Remove the expense
             expenses.splice(index, 1);
             this.model.setExpenses(expenses);
-            
-            console.log('After removal:', expenses.length);
-            
-            // Force re-render
-            const formData = this.model.getFormData();
-            const totals = this.model.calculateTotals();
-            this.view.render(formData, totals, this.isConnected);
-            
             this.view.showMessage('Expense entry removed', 'success');
         }
     }
@@ -92,26 +86,9 @@ export class MainController {
         if (expenses[index]) {
             expenses[index][field] = value;
             this.model.setExpenses(expenses);
-            
-            // Update totals
             const totals = this.model.calculateTotals();
             this.view.updateGrandTotal(totals.total);
-            
-            // Update row total
-            const rowTotal = this.calculateRowTotal(expenses[index]);
-            this.view.updateRowTotalDisplay(index, rowTotal);
         }
-    }
-
-    calculateRowTotal(expense) {
-        return (parseFloat(expense.transpo) || 0) + 
-               (parseFloat(expense.meal) || 0) + 
-               (parseFloat(expense.lodging) || 0) + 
-               (parseFloat(expense.materials) || 0) + 
-               (parseFloat(expense.print) || 0) + 
-               (parseFloat(expense.freight) || 0) + 
-               (parseFloat(expense.rental) || 0) + 
-               (parseFloat(expense.others) || 0);
     }
 
     async handleSaveToCloud() {

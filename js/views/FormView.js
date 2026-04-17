@@ -16,13 +16,12 @@ export class FormView {
     render(formData, totals, isConnected) {
         this.container.innerHTML = `
             <div class="header">
-                <h1>BASED ALLOWANCE REPLENISHMENT (FSO)</h1>
+                <h1>BASED ALLOWANCE REPLENISHMENT (ALS template 2026)</h1>
                 <div class="status-badge ${isConnected ? 'status-connected' : 'status-disconnected'}">
                     ${isConnected ? '● Online' : '○ Offline'}
                 </div>
             </div>
 
-            <!-- Header Info Section -->
             <div class="info-section">
                 <div class="info-row">
                     <div class="info-label">Field Engineers Name:</div>
@@ -61,7 +60,6 @@ export class FormView {
                 </div>
             </div>
 
-            <!-- Data Table -->
             <div class="table-container">
                 <table class="data-table">
                     <thead>
@@ -98,12 +96,10 @@ export class FormView {
                 </table>
             </div>
 
-            <!-- Add Row Button -->
             <div class="add-row-btn">
                 <button type="button" id="addExpenseBtn" class="btn btn-info">+ Add Expense Entry</button>
             </div>
 
-            <!-- Action Buttons -->
             <div class="action-buttons">
                 <button type="button" id="exportExcelBtn" class="btn btn-success">📊 Export to Excel</button>
                 <button type="button" id="saveToCloudBtn" class="btn btn-primary">☁️ Save to Cloud</button>
@@ -165,19 +161,6 @@ export class FormView {
         if (grandTotalSpan) {
             grandTotalSpan.innerHTML = `<strong>₱ ${total.toFixed(2)}</strong>`;
         }
-    }
-
-    updateRowTotals(expenses) {
-        const rows = document.querySelectorAll('#expenseTableBody tr');
-        rows.forEach((row, index) => {
-            if (expenses[index]) {
-                const total = this.calculateRowTotal(expenses[index]);
-                const totalCell = row.querySelector('.row-total');
-                if (totalCell) {
-                    totalCell.textContent = `₱ ${total.toFixed(2)}`;
-                }
-            }
-        });
     }
 
     attachEvents() {
@@ -255,17 +238,18 @@ export class FormView {
             }
         });
 
-        // Remove expense buttons - FIXED: Using closest() to properly capture the button
-        this.container.addEventListener('click', (e) => {
-            const btn = e.target.closest('.remove-expense-btn');
-            if (btn) {
+        // Remove expense buttons - DIRECT EVENT HANDLER
+        const removeButtons = document.querySelectorAll('.remove-expense-btn');
+        removeButtons.forEach(btn => {
+            btn.onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 const index = btn.getAttribute('data-index');
+                console.log('Remove button clicked, index:', index);
                 if (index !== null && this.onRemoveExpense) {
                     this.onRemoveExpense(parseInt(index));
                 }
-            }
+            };
         });
     }
 
