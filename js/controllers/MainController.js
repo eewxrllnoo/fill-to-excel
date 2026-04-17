@@ -3,11 +3,11 @@ import { ExpenseModel } from '../models/ExpenseModel.js';
 import { FormView } from '../views/FormView.js';
 import { TableView } from '../views/TableView.js';
 import { SupabaseService } from '../services/SupabaseService.js';
-import { exportToExcel } from '../utils/excelExporter.js';
+import { exportToExcel } from '../../utils/excelExporter.js';
 
 // YOUR SUPABASE CREDENTIALS - REPLACE WITH YOUR ACTUAL VALUES
-const SUPABASE_URL = 'https://tatrpnfidwweefgldcix.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publisbable_hqsbgkdnPnNu8GfkPa_A_3-p-o_';
+const SUPABASE_URL = 'https://tatrpmfidwweefgldcix.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_hqs3bgkdNpNu0GfkPa__-A_3-p-oyjO';
 
 export class MainController {
     constructor() {
