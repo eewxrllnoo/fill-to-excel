@@ -15,12 +15,18 @@ export class FormView {
 
     render(formData, totals, isConnected) {
         this.container.innerHTML = `
-            <div class="header">
-                <h1>BASED ALLOWANCE REPLENISHMENT (ALS template 2026)</h1>
-                <div class="status-badge ${isConnected ? 'status-connected' : 'status-disconnected'}">
-                    ${isConnected ? '● Online' : '○ Offline'}
-                </div>
-            </div>
+           <div class="header">
+    <div class="logo-container">
+        <h1>
+            Based Allowance Replenishment (Company: ALS 
+            <img src="assets/logo.png" alt="Logo" class="logo-text-replace">
+            )
+        </h1>
+    </div>
+    <div class="status-badge ${isConnected ? 'status-connected' : 'status-disconnected'}">
+        ${isConnected ? '● Online' : '○ Offline'}
+    </div>
+</div>
 
             <div class="info-section">
                 <div class="info-row">
@@ -111,6 +117,7 @@ export class FormView {
 
             <div id="message" class="message"></div>
         `;
+        
         this.attachEvents();
     }
 
@@ -123,43 +130,89 @@ export class FormView {
             const total = this.calculateRowTotal(expense);
             return `
                 <tr data-row-index="${index}">
-                    <td><input type="date" class="expense-input" data-field="activityDate" data-index="${index}" value="${expense.activityDate || ''}"></td>
-                    <td><input type="text" class="expense-input" data-field="fpTicket" data-index="${index}" value="${this.escapeHtml(expense.fpTicket || '')}" placeholder="FP ticket"></td>
-                    <td><input type="text" class="expense-input" data-field="projectName" data-index="${index}" value="${this.escapeHtml(expense.projectName || '')}" placeholder="Project name"></td>
-                    <td><input type="text" class="expense-input" data-field="poNumber" data-index="${index}" value="${this.escapeHtml(expense.poNumber || '')}" placeholder="PO#"></td>
-                    <td><input type="text" class="expense-input" data-field="launchPoint" data-index="${index}" value="${this.escapeHtml(expense.launchPoint || '')}" placeholder="Launch point"></td>
-                    <td><input type="text" class="expense-input" data-field="clientAddress" data-index="${index}" value="${this.escapeHtml(expense.clientAddress || '')}" placeholder="Client address"></td>
-                    <td><input type="number" step="0.1" class="expense-input" data-field="distance" data-index="${index}" value="${expense.distance || ''}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="transpo" data-index="${index}" value="${expense.transpo || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="meal" data-index="${index}" value="${expense.meal || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="lodging" data-index="${index}" value="${expense.lodging || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="materials" data-index="${index}" value="${expense.materials || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="print" data-index="${index}" value="${expense.print || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="freight" data-index="${index}" value="${expense.freight || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="rental" data-index="${index}" value="${expense.rental || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="others" data-index="${index}" value="${expense.others || 0}" placeholder="0"></td>
+                    <td><input type="date" class="expense-input" data-field="activityDate" data-row="${index}" value="${expense.activityDate || ''}"></td>
+                    <td><input type="text" class="expense-input" data-field="fpTicket" data-row="${index}" value="${this.escapeHtml(expense.fpTicket || '')}" placeholder="FP ticket"></td>
+                    <td><input type="text" class="expense-input" data-field="projectName" data-row="${index}" value="${this.escapeHtml(expense.projectName || '')}" placeholder="Project name"></td>
+                    <td><input type="text" class="expense-input" data-field="poNumber" data-row="${index}" value="${this.escapeHtml(expense.poNumber || '')}" placeholder="PO#"></td>
+                    <td><input type="text" class="expense-input" data-field="launchPoint" data-row="${index}" value="${this.escapeHtml(expense.launchPoint || '')}" placeholder="Launch point"></td>
+                    <td><input type="text" class="expense-input" data-field="clientAddress" data-row="${index}" value="${this.escapeHtml(expense.clientAddress || '')}" placeholder="Client address"></td>
+                    <td><input type="number" step="0.1" class="expense-input" data-field="distance" data-row="${index}" value="${expense.distance || ''}" placeholder="0"></td>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="transpo" data-row="${index}" value="${expense.transpo || 0}" placeholder="0"></td>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="meal" data-row="${index}" value="${expense.meal || 0}" placeholder="0"></td>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="lodging" data-row="${index}" value="${expense.lodging || 0}" placeholder="0"></td>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="materials" data-row="${index}" value="${expense.materials || 0}" placeholder="0"></td>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="print" data-row="${index}" value="${expense.print || 0}" placeholder="0"></td>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="freight" data-row="${index}" value="${expense.freight || 0}" placeholder="0"></td>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="rental" data-row="${index}" value="${expense.rental || 0}" placeholder="0"></td>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="others" data-row="${index}" value="${expense.others || 0}" placeholder="0"></td>
                     <td class="row-total" data-row-total="${index}">₱ ${total.toFixed(2)}</td>
-                    <td><button type="button" class="remove-expense-btn" data-index="${index}">✗ Remove</button></td>
+                    <td><button type="button" class="remove-expense-btn" data-row="${index}">✗ Remove</button></td>
                 </tr>
             `;
         }).join('');
     }
 
     calculateRowTotal(expense) {
-        return (parseFloat(expense.transpo) || 0) + 
-               (parseFloat(expense.meal) || 0) + 
-               (parseFloat(expense.lodging) || 0) + 
-               (parseFloat(expense.materials) || 0) + 
-               (parseFloat(expense.print) || 0) + 
-               (parseFloat(expense.freight) || 0) + 
-               (parseFloat(expense.rental) || 0) + 
-               (parseFloat(expense.others) || 0);
+        const transpo = parseFloat(expense.transpo) || 0;
+        const meal = parseFloat(expense.meal) || 0;
+        const lodging = parseFloat(expense.lodging) || 0;
+        const materials = parseFloat(expense.materials) || 0;
+        const print = parseFloat(expense.print) || 0;
+        const freight = parseFloat(expense.freight) || 0;
+        const rental = parseFloat(expense.rental) || 0;
+        const others = parseFloat(expense.others) || 0;
+        
+        return transpo + meal + lodging + materials + print + freight + rental + others;
     }
 
-    updateGrandTotal(total) {
+    updateRowTotal(rowIndex) {
+        const row = document.querySelector(`tr[data-row-index="${rowIndex}"]`);
+        if (!row) return;
+        
+        // Get all input values from the row
+        const transpoInput = row.querySelector('input[data-field="transpo"]');
+        const mealInput = row.querySelector('input[data-field="meal"]');
+        const lodgingInput = row.querySelector('input[data-field="lodging"]');
+        const materialsInput = row.querySelector('input[data-field="materials"]');
+        const printInput = row.querySelector('input[data-field="print"]');
+        const freightInput = row.querySelector('input[data-field="freight"]');
+        const rentalInput = row.querySelector('input[data-field="rental"]');
+        const othersInput = row.querySelector('input[data-field="others"]');
+        
+        const transpo = parseFloat(transpoInput?.value) || 0;
+        const meal = parseFloat(mealInput?.value) || 0;
+        const lodging = parseFloat(lodgingInput?.value) || 0;
+        const materials = parseFloat(materialsInput?.value) || 0;
+        const print = parseFloat(printInput?.value) || 0;
+        const freight = parseFloat(freightInput?.value) || 0;
+        const rental = parseFloat(rentalInput?.value) || 0;
+        const others = parseFloat(othersInput?.value) || 0;
+        
+        const total = transpo + meal + lodging + materials + print + freight + rental + others;
+        
+        const totalCell = row.querySelector('.row-total');
+        if (totalCell) {
+            totalCell.textContent = `₱ ${total.toFixed(2)}`;
+        }
+        
+        return total;
+    }
+
+    updateGrandTotal() {
+        let grandTotal = 0;
+        const rows = document.querySelectorAll('#expenseTableBody tr');
+        rows.forEach(row => {
+            const totalCell = row.querySelector('.row-total');
+            if (totalCell) {
+                const totalText = totalCell.textContent.replace('₱', '').replace(',', '').trim();
+                const total = parseFloat(totalText) || 0;
+                grandTotal += total;
+            }
+        });
+        
         const grandTotalSpan = document.getElementById('grandTotalDisplay');
         if (grandTotalSpan) {
-            grandTotalSpan.innerHTML = `<strong>₱ ${total.toFixed(2)}</strong>`;
+            grandTotalSpan.innerHTML = `<strong>₱ ${grandTotal.toFixed(2)}</strong>`;
         }
     }
 
@@ -220,34 +273,41 @@ export class FormView {
             };
         }
 
-        // Input events for expense fields
-        this.container.addEventListener('input', (e) => {
-            const target = e.target;
-            if (target.classList && target.classList.contains('expense-input')) {
-                const index = parseInt(target.getAttribute('data-index'));
-                const field = target.getAttribute('data-field');
-                let value = target.value;
+        // Input events for expense fields - UPDATE IN REAL TIME
+        const expenseInputs = document.querySelectorAll('.expense-input');
+        expenseInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                e.stopPropagation();
+                const rowIndex = parseInt(input.getAttribute('data-row'));
+                const field = input.getAttribute('data-field');
+                let value = input.value;
                 
-                if (target.type === 'number') {
+                if (input.type === 'number') {
                     value = value === '' ? 0 : parseFloat(value);
                 }
                 
+                // Update the model
                 if (this.onUpdateExpense) {
-                    this.onUpdateExpense(index, field, value);
+                    this.onUpdateExpense(rowIndex, field, value);
                 }
-            }
+                
+                // Update the row total immediately
+                this.updateRowTotal(rowIndex);
+                
+                // Update grand total
+                this.updateGrandTotal();
+            });
         });
 
-        // Remove expense buttons - DIRECT EVENT HANDLER
+        // Remove expense buttons
         const removeButtons = document.querySelectorAll('.remove-expense-btn');
         removeButtons.forEach(btn => {
             btn.onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const index = btn.getAttribute('data-index');
-                console.log('Remove button clicked, index:', index);
-                if (index !== null && this.onRemoveExpense) {
-                    this.onRemoveExpense(parseInt(index));
+                const rowIndex = parseInt(btn.getAttribute('data-row'));
+                if (!isNaN(rowIndex) && this.onRemoveExpense) {
+                    this.onRemoveExpense(rowIndex);
                 }
             };
         });

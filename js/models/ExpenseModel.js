@@ -46,8 +46,6 @@ export class ExpenseModel {
         if (this.formData.expenses[index]) {
             this.formData.expenses[index][field] = value;
             this.expenses = this.formData.expenses;
-            // Don't notify listeners for single field updates to prevent re-render
-            // Listeners will be notified only for structural changes
         }
     }
 
@@ -89,17 +87,6 @@ export class ExpenseModel {
         return totals;
     }
 
-    calculateTotalsForRow(expense) {
-        return (parseFloat(expense.transpo) || 0) + 
-               (parseFloat(expense.meal) || 0) + 
-               (parseFloat(expense.lodging) || 0) + 
-               (parseFloat(expense.materials) || 0) + 
-               (parseFloat(expense.print) || 0) + 
-               (parseFloat(expense.freight) || 0) + 
-               (parseFloat(expense.rental) || 0) + 
-               (parseFloat(expense.others) || 0);
-    }
-
     validate() {
         const errors = [];
         if (!this.formData.fieldEngineerName) errors.push('Engineer Name is required');
@@ -108,11 +95,6 @@ export class ExpenseModel {
         if (!this.formData.cluster) errors.push('Cluster is required');
         if (!this.formData.teamLead) errors.push('Team Lead is required');
         if (this.formData.expenses.length === 0) errors.push('At least one expense entry is required');
-        
-        this.formData.expenses.forEach((expense, index) => {
-            if (!expense.activityDate) errors.push(`Entry ${index + 1}: Activity Date required`);
-            if (!expense.projectName) errors.push(`Entry ${index + 1}: Project Name required`);
-        });
         
         return errors;
     }

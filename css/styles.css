@@ -32,7 +32,7 @@ body {
     margin: 0 auto;
 }
 
-/* Header - Flex layout for left/right alignment */
+/* Header */
 .header {
     background: white;
     border-radius: 12px;
@@ -71,6 +71,14 @@ body {
 .status-disconnected {
     background: #fee2e2;
     color: #991b1b;
+}
+
+/* Logo Styles */
+.logo-text-replace {
+    height: 24px;
+    width: auto;
+    vertical-align: middle;
+    display: inline-block;
 }
 
 /* Info Section */
@@ -118,7 +126,7 @@ body {
     outline: none;
 }
 
-/* Date Range Styles - Fixed Spacing */
+/* Date Range Styles */
 .date-range {
     display: flex;
     gap: 12px;
@@ -164,7 +172,6 @@ input[type="date"] {
     cursor: pointer;
 }
 
-/* Fix date picker icon spacing - Webkit browsers */
 input[type="date"]::-webkit-calendar-picker-indicator {
     margin-left: 8px;
     padding: 4px;
@@ -176,18 +183,16 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
 }
 
-/* Fix for Firefox */
 input[type="date"] {
     -moz-appearance: textfield;
 }
 
-/* Date Filed specific */
 #dateFiled {
     width: 145px;
     padding: 6px 10px;
 }
 
-/* Table Container - Makes table scrollable */
+/* Table Container */
 .table-container {
     overflow-x: auto;
     overflow-y: visible;
@@ -228,7 +233,7 @@ input[type="date"] {
     border-bottom: none;
 }
 
-/* Input fields inside table - WIDER for full text visibility */
+/* Input fields inside table */
 .data-table td input {
     width: auto;
     min-width: 120px;
@@ -241,7 +246,7 @@ input[type="date"] {
     background: white;
 }
 
-/* Specific column widths for better visibility */
+/* Specific column widths */
 .data-table th:nth-child(1) { min-width: 100px; }
 .data-table th:nth-child(2) { min-width: 100px; }
 .data-table th:nth-child(3) { min-width: 200px; }
@@ -277,7 +282,6 @@ input[type="date"] {
 .data-table td:nth-child(14) input { min-width: 80px; }
 .data-table td:nth-child(15) input { min-width: 80px; }
 
-/* Input focus style */
 .data-table td input:focus {
     outline: none;
     border-color: var(--primary);
@@ -306,10 +310,69 @@ input[type="date"] {
     border-top: 2px solid var(--border);
 }
 
-/* Remove Button */
+/* Add Row Button */
+.add-row-btn {
+    text-align: center;
+    margin: 16px 0;
+}
+
+/* ==================== BUTTON STYLES - PROFESSIONAL SINGLE COLOR ==================== */
+
+/* Action Buttons Container */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+}
+
+/* All Main Buttons - Single Blue Color */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active {
+    transform: translateY(0);
+    background: #1d4ed8;
+}
+
+/* Add Expense Button */
+.add-row-btn .btn {
+    background: #3b82f6;
+    padding: 10px 24px;
+    font-size: 13px;
+}
+
+.add-row-btn .btn:hover {
+    background: #2563eb;
+}
+
+/* Remove Button - Red for delete action */
 .remove-expense-btn {
-    background: #fee2e2;
-    color: #dc2626;
+    background: #ef4444;
+    color: white;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -321,82 +384,7 @@ input[type="date"] {
 }
 
 .remove-expense-btn:hover {
-    background: #fecaca;
-}
-
-/* Add Row Button */
-.add-row-btn {
-    text-align: center;
-    margin: 16px 0;
-}
-
-/* Action Buttons */
-.action-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-}
-
-.btn {
-    padding: 8px 18px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.btn-primary {
-    background: var(--primary);
-    color: white;
-}
-
-.btn-primary:hover {
-    background: var(--primary-hover);
-}
-
-.btn-success {
-    background: var(--success);
-    color: white;
-}
-
-.btn-success:hover {
-    background: #059669;
-}
-
-.btn-warning {
-    background: var(--warning);
-    color: white;
-}
-
-.btn-warning:hover {
-    background: #d97706;
-}
-
-.btn-danger {
-    background: var(--danger);
-    color: white;
-}
-
-.btn-danger:hover {
     background: #dc2626;
-}
-
-.btn-info {
-    background: var(--info);
-    color: white;
-}
-
-.btn-info:hover {
-    background: #2563eb;
 }
 
 /* Message */
@@ -530,16 +518,24 @@ input[type="date"] {
     border-color: var(--primary);
 }
 
-/* Responsive */
-@media (max-width: 1200px) {
-    .data-table {
-        min-width: 1400px;
-    }
-}
+/* Mobile Responsive */
 
-@media (max-width: 900px) {
+
+@media (max-width: 768px) {
     body {
         padding: 12px;
+    }
+
+    .logo-text-replace {
+        height: 18px;
+    }
+
+    .logo-image {
+        height: 30px;
+    }
+    
+    .logo-container {
+        gap: 8px;
     }
     
     .info-row {
@@ -556,44 +552,83 @@ input[type="date"] {
         flex-wrap: wrap;
     }
     
+    /* Professional Mobile Buttons - 2 Column Grid */
     .action-buttons {
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 20px;
     }
     
     .btn {
         width: 100%;
         justify-content: center;
-    }
-}
-
-@media (max-width: 600px) {
-    .header {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
+        padding: 10px 12px;
+        font-size: 12px;
+        border-radius: 8px;
+        margin-right: 0;
     }
     
-    .header h1 {
-        margin-bottom: 0;
+    /* Make text smaller on very small screens */
+    .btn {
+        font-size: 11px;
+        padding: 8px 10px;
+    }
+    
+    /* Add Expense button - full width on mobile */
+    .add-row-btn .btn {
+        width: auto;
+        min-width: 160px;
+        padding: 10px 20px;
+    }
+    
+    /* Remove button on mobile */
+    .remove-expense-btn {
+        padding: 4px 10px;
+        font-size: 10px;
+    }
+    
+    /* Table adjustments */
+    .data-table {
+        font-size: 10px;
+    }
+    
+    .data-table th, 
+    .data-table td {
+        padding: 6px 3px;
+    }
+    
+    .data-table td input {
+        min-width: 70px;
+        padding: 4px 6px;
+        font-size: 10px;
     }
 }
 
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+/* Tablet responsive */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .logo-image {
+        height: 35px;
+    }
 }
 
-::-webkit-scrollbar-track {
-    background: var(--border);
-    border-radius: 10px;
+/* Small mobile devices (under 500px) - Keep 2 columns but smaller text */
+@media (max-width: 500px) {
+    .action-buttons {
+        gap: 8px;
+    }
+    
+    .btn {
+        font-size: 10px;
+        padding: 8px 8px;
+    }
 }
 
-::-webkit-scrollbar-thumb {
-    background: var(--gray);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--dark);
+/* Extra small devices (under 400px) - Still 2 columns */
+@media (max-width: 400px) {
+    .btn {
+        font-size: 9px;
+        padding: 7px 6px;
+    }
 }

@@ -21,6 +21,7 @@ export class MainController {
     }
 
     async init() {
+        // Setup callbacks
         this.view.onAddExpense = () => this.handleAddExpense();
         this.view.onRemoveExpense = (index) => this.handleRemoveExpense(index);
         this.view.onUpdateExpense = (index, field, value) => this.handleUpdateExpense(index, field, value);
@@ -31,18 +32,28 @@ export class MainController {
         this.view.onLoadLocal = () => this.handleLoadLocal();
         this.view.onReset = () => this.handleReset();
         
+        // Model subscription
         this.model.addListener((formData) => {
             const totals = this.model.calculateTotals();
             this.view.render(formData, totals, this.isConnected);
-            // Re-attach remove button events after re-render
-            setTimeout(() => this.reAttachRemoveEvents(), 100);
+            // Recalculate all totals after render
+            setTimeout(() => {
+                for (let i = 0; i < formData.expenses.length; i++) {
+                    this.view.updateRowTotal(i);
+                }
+                this.view.updateGrandTotal();
+            }, 50);
         });
         
+        // Initialize Supabase
         const result = await this.service.init();
         this.isConnected = result.success;
         
+        // Initial render
         const totals = this.model.calculateTotals();
         this.view.render(this.model.getFormData(), totals, this.isConnected);
+        
+        // Add initial empty expense
         this.model.addExpense(this.model.getEmptyExpense());
         
         if (this.isConnected) {
@@ -50,20 +61,6 @@ export class MainController {
         } else {
             this.view.showMessage('Offline mode - using local storage', 'info');
         }
-    }
-
-    reAttachRemoveEvents() {
-        const removeButtons = document.querySelectorAll('.remove-expense-btn');
-        removeButtons.forEach(btn => {
-            btn.onclick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const index = btn.getAttribute('data-index');
-                if (index !== null) {
-                    this.handleRemoveExpense(parseInt(index));
-                }
-            };
-        });
     }
 
     handleAddExpense() {
@@ -85,9 +82,9 @@ export class MainController {
         const expenses = this.model.getExpenses();
         if (expenses[index]) {
             expenses[index][field] = value;
-            this.model.setExpenses(expenses);
-            const totals = this.model.calculateTotals();
-            this.view.updateGrandTotal(totals.total);
+            // No need to re-render, just update the view
+            this.view.updateRowTotal(index);
+            this.view.updateGrandTotal();
         }
     }
 
