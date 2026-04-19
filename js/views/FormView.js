@@ -15,18 +15,17 @@ export class FormView {
 
     render(formData, totals, isConnected) {
         this.container.innerHTML = `
-           <div class="header">
-    <div class="logo-container">
-        <h1>
-            Based Allowance Replenishment (Company: ALS 
-            <img src="assets/logo.png" alt="Logo" class="logo-text-replace">
-            )
-        </h1>
-    </div>
-    <div class="status-badge ${isConnected ? 'status-connected' : 'status-disconnected'}">
-        ${isConnected ? '● Online' : '○ Offline'}
-    </div>
-</div>
+           
+            <div class="header">
+                <div class="logo-container">
+                    <h1>
+                        Based Allowance Replenishment 
+                        <span class="company-name">(Company: 
+                        <img src="/assets/logo.png" alt="ACTIUNLABS" class="inline-logo" onerror="this.style.display='none'">)
+                        </span>
+                        </h1>
+                </div>
+            </div>
 
             <div class="info-section">
                 <div class="info-row">

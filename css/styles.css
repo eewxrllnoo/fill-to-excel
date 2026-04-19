@@ -32,7 +32,7 @@ body {
     margin: 0 auto;
 }
 
-/* Header */
+/* Header - Centered */
 .header {
     background: white;
     border-radius: 12px;
@@ -40,45 +40,43 @@ body {
     margin-bottom: 20px;
     box-shadow: var(--shadow);
     border: 1px solid var(--border);
+    text-align: center;
+}
+
+/* Logo Container Styles - Centered */
+.logo-container h1 {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: center;
     flex-wrap: wrap;
-}
-
-.header h1 {
-    color: var(--dark);
+    gap: 8px;
     font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 0;
-}
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 11px;
     font-weight: 600;
+    color: var(--dark);
+    margin: 0;
 }
 
-.status-connected {
-    background: #d1fae5;
-    color: #065f46;
+.company-name {
+    color: #3b82f6;
+    font-weight: 500;
 }
 
-.status-disconnected {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-/* Logo Styles */
-.logo-text-replace {
-    height: 24px;
+.inline-logo {
+    height: 28px;
     width: auto;
     vertical-align: middle;
-    display: inline-block;
+    object-fit: contain;
+}
+
+/* Text logo (if no image) */
+.text-logo-inline {
+    font-size: 16px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 1px;
 }
 
 /* Info Section */
@@ -519,23 +517,9 @@ input[type="date"] {
 }
 
 /* Mobile Responsive */
-
-
 @media (max-width: 768px) {
     body {
         padding: 12px;
-    }
-
-    .logo-text-replace {
-        height: 18px;
-    }
-
-    .logo-image {
-        height: 30px;
-    }
-    
-    .logo-container {
-        gap: 8px;
     }
     
     .info-row {
@@ -552,7 +536,26 @@ input[type="date"] {
         flex-wrap: wrap;
     }
     
-    /* Professional Mobile Buttons - 2 Column Grid */
+    /* Logo mobile styles - Centered */
+    .logo-container h1 {
+        font-size: 14px;
+        gap: 5px;
+        justify-content: center;
+    }
+    
+    .inline-logo {
+        height: 20px;
+    }
+    
+    .text-logo-inline {
+        font-size: 12px;
+    }
+    
+    .company-name {
+        display: inline;
+    }
+    
+    /* Button mobile styles - 2 column grid */
     .action-buttons {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -565,25 +568,17 @@ input[type="date"] {
         width: 100%;
         justify-content: center;
         padding: 10px 12px;
-        font-size: 12px;
+        font-size: 11px;
         border-radius: 8px;
         margin-right: 0;
     }
     
-    /* Make text smaller on very small screens */
-    .btn {
-        font-size: 11px;
-        padding: 8px 10px;
-    }
-    
-    /* Add Expense button - full width on mobile */
     .add-row-btn .btn {
         width: auto;
         min-width: 160px;
         padding: 10px 20px;
     }
     
-    /* Remove button on mobile */
     .remove-expense-btn {
         padding: 4px 10px;
         font-size: 10px;
@@ -606,14 +601,7 @@ input[type="date"] {
     }
 }
 
-/* Tablet responsive */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .logo-image {
-        height: 35px;
-    }
-}
-
-/* Small mobile devices (under 500px) - Keep 2 columns but smaller text */
+/* Small mobile devices (under 500px) */
 @media (max-width: 500px) {
     .action-buttons {
         gap: 8px;
@@ -625,10 +613,59 @@ input[type="date"] {
     }
 }
 
-/* Extra small devices (under 400px) - Still 2 columns */
+/* Extra small devices (under 400px) */
 @media (max-width: 400px) {
     .btn {
         font-size: 9px;
         padding: 7px 6px;
     }
+    
+    .add-row-btn .btn {
+        min-width: 140px;
+        padding: 8px 16px;
+    }
+}
+
+/* Tablet view - 3 columns */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+    
+    .logo-container h1 {
+        font-size: 16px;
+    }
+    
+    .inline-logo {
+        height: 24px;
+    }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gray);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--dark);
 }

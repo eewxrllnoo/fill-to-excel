@@ -82,7 +82,7 @@ export class MainController {
         const expenses = this.model.getExpenses();
         if (expenses[index]) {
             expenses[index][field] = value;
-            // No need to re-render, just update the view
+            // Update totals directly without re-render
             this.view.updateRowTotal(index);
             this.view.updateGrandTotal();
         }

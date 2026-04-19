@@ -42,13 +42,6 @@ export class ExpenseModel {
         this.notifyListeners();
     }
 
-    updateExpense(index, field, value) {
-        if (this.formData.expenses[index]) {
-            this.formData.expenses[index][field] = value;
-            this.expenses = this.formData.expenses;
-        }
-    }
-
     removeExpense(index) {
         this.formData.expenses.splice(index, 1);
         this.expenses = this.formData.expenses;
