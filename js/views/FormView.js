@@ -11,21 +11,23 @@ export class FormView {
         this.onSaveLocal = null;
         this.onLoadLocal = null;
         this.onReset = null;
+        this.onLoadRecord = null;
     }
 
-    render(formData, totals, isConnected) {
+    render(formData, totals, isConnected, recentRecords = []) {
         this.container.innerHTML = `
-           
             <div class="header">
                 <div class="logo-container">
                     <h1>
                         Based Allowance Replenishment 
-                        <span class="company-name">(Company: 
+                        <span class="company-name">(Company:
                         <img src="/assets/logo.png" alt="ACTIUNLABS" class="inline-logo" onerror="this.style.display='none'">)
                         </span>
-                        </h1>
+                    </h1>
                 </div>
             </div>
+
+            ${this.renderRecentRecords(recentRecords)}
 
             <div class="info-section">
                 <div class="info-row">
@@ -107,8 +109,8 @@ export class FormView {
 
             <div class="action-buttons">
                 <button type="button" id="exportExcelBtn" class="btn btn-success">📊 Export to Excel</button>
-                <button type="button" id="saveToCloudBtn" class="btn btn-primary">☁️ Save to Cloud</button>
-                <button type="button" id="loadFromCloudBtn" class="btn btn-info">📋 Load from Cloud</button>
+                <button type="button" id="saveToCloudBtn" class="btn btn-primary">☁️ Save</button>
+                <button type="button" id="loadFromCloudBtn" class="btn btn-info">📋 View </button>
                 <button type="button" id="saveLocalBtn" class="btn btn-warning">💾 Save Locally</button>
                 <button type="button" id="loadLocalBtn" class="btn btn-info">📂 Load Local</button>
                 <button type="button" id="resetBtn" class="btn btn-danger">🔄 Reset Form</button>
@@ -120,32 +122,63 @@ export class FormView {
         this.attachEvents();
     }
 
+    renderRecentRecords(records) {
+        if (!records || records.length === 0) {
+            return '';
+        }
+        
+        return `
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <i class="fas fa-history" style="color: #10b981;"></i>
+                        <strong style="margin-left: 8px; color: #065f46;">Recent Saved Reports</strong>
+                        <span style="margin-left: 8px; font-size: 12px; color: #666;">(Last ${records.length} entries)</span>
+                    </div>
+                    <button type="button" id="viewAllRecordsBtn" class="btn btn-info" style="padding: 6px 12px; font-size: 11px;">
+                        <i class="fas fa-folder-open"></i> View All
+                    </button>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px;">
+                    ${records.map(record => `
+                        <div class="recent-record-item" data-id="${record.id}" style="background: white; border: 1px solid #bbf7d0; border-radius: 8px; padding: 8px 12px; cursor: pointer; transition: all 0.2s; flex: 1; min-width: 180px;">
+                            <div style="font-weight: 600; font-size: 12px; color: #065f46;">${this.escapeHtml(record.engineer_name)}</div>
+                            <div style="font-size: 10px; color: #666;">📅 ${record.coverage_start || ''} → ${record.coverage_end || ''}</div>
+                            <div style="font-size: 10px; color: #666;">📍 ${this.escapeHtml(record.cluster || '')} | 👤 ${this.escapeHtml(record.team_lead || '')}</div>
+                            <div style="font-size: 10px; color: #888;">💾 ${new Date(record.created_at).toLocaleDateString()}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
     renderExpenseRows(expenses) {
         if (!expenses || expenses.length === 0) {
-            return `<tr><td colspan="18" style="text-align: center; padding: 30px;">No expense entries. Click "+ Add Expense Entry" to begin.</td></tr>`;
+            return `<tr><td colspan="18" style="text-align: center; padding: 30px;">No expense entries. Click "+ Add Expense Entry" to begin.</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></td></tr>`;
         }
 
         return expenses.map((expense, index) => {
             const total = this.calculateRowTotal(expense);
             return `
                 <tr data-row-index="${index}">
-                    <td><input type="date" class="expense-input" data-field="activityDate" data-row="${index}" value="${expense.activityDate || ''}"></td>
-                    <td><input type="text" class="expense-input" data-field="fpTicket" data-row="${index}" value="${this.escapeHtml(expense.fpTicket || '')}" placeholder="FP ticket"></td>
-                    <td><input type="text" class="expense-input" data-field="projectName" data-row="${index}" value="${this.escapeHtml(expense.projectName || '')}" placeholder="Project name"></td>
-                    <td><input type="text" class="expense-input" data-field="poNumber" data-row="${index}" value="${this.escapeHtml(expense.poNumber || '')}" placeholder="PO#"></td>
-                    <td><input type="text" class="expense-input" data-field="launchPoint" data-row="${index}" value="${this.escapeHtml(expense.launchPoint || '')}" placeholder="Launch point"></td>
-                    <td><input type="text" class="expense-input" data-field="clientAddress" data-row="${index}" value="${this.escapeHtml(expense.clientAddress || '')}" placeholder="Client address"></td>
-                    <td><input type="number" step="0.1" class="expense-input" data-field="distance" data-row="${index}" value="${expense.distance || ''}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="transpo" data-row="${index}" value="${expense.transpo || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="meal" data-row="${index}" value="${expense.meal || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="lodging" data-row="${index}" value="${expense.lodging || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="materials" data-row="${index}" value="${expense.materials || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="print" data-row="${index}" value="${expense.print || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="freight" data-row="${index}" value="${expense.freight || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="rental" data-row="${index}" value="${expense.rental || 0}" placeholder="0"></td>
-                    <td><input type="number" step="0.01" class="expense-input" data-field="others" data-row="${index}" value="${expense.others || 0}" placeholder="0"></td>
-                    <td class="row-total" data-row-total="${index}">₱ ${total.toFixed(2)}</td>
-                    <td><button type="button" class="remove-expense-btn" data-row="${index}">✗ Remove</button></td>
+                    <td><input type="date" class="expense-input" data-field="activityDate" data-row="${index}" value="${expense.activityDate || ''}"></span></span>
+                    <td><input type="text" class="expense-input" data-field="fpTicket" data-row="${index}" value="${this.escapeHtml(expense.fpTicket || '')}" placeholder="FP ticket"></span></span>
+                    <td><input type="text" class="expense-input" data-field="projectName" data-row="${index}" value="${this.escapeHtml(expense.projectName || '')}" placeholder="Project name"></span></span>
+                    <td><input type="text" class="expense-input" data-field="poNumber" data-row="${index}" value="${this.escapeHtml(expense.poNumber || '')}" placeholder="PO#"></span></span>
+                    <td><input type="text" class="expense-input" data-field="launchPoint" data-row="${index}" value="${this.escapeHtml(expense.launchPoint || '')}" placeholder="Launch point"></span></span>
+                    <td><input type="text" class="expense-input" data-field="clientAddress" data-row="${index}" value="${this.escapeHtml(expense.clientAddress || '')}" placeholder="Client address"></span></span>
+                    <td><input type="number" step="0.1" class="expense-input" data-field="distance" data-row="${index}" value="${expense.distance || ''}" placeholder="0"></span></span>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="transpo" data-row="${index}" value="${expense.transpo || 0}" placeholder="0"></span></span>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="meal" data-row="${index}" value="${expense.meal || 0}" placeholder="0"></span></span>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="lodging" data-row="${index}" value="${expense.lodging || 0}" placeholder="0"></span></span>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="materials" data-row="${index}" value="${expense.materials || 0}" placeholder="0"></span></span>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="print" data-row="${index}" value="${expense.print || 0}" placeholder="0"></span></span>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="freight" data-row="${index}" value="${expense.freight || 0}" placeholder="0"></span></span>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="rental" data-row="${index}" value="${expense.rental || 0}" placeholder="0"></span></span>
+                    <td><input type="number" step="0.01" class="expense-input" data-field="others" data-row="${index}" value="${expense.others || 0}" placeholder="0"></span></span>
+                    <td class="row-total" data-row-total="${index}">₱ ${total.toFixed(2)}</span></span>
+                    <td><button type="button" class="remove-expense-btn" data-row="${index}">✗ Remove</button></span></span>
                 </tr>
             `;
         }).join('');
@@ -168,7 +201,6 @@ export class FormView {
         const row = document.querySelector(`tr[data-row-index="${rowIndex}"]`);
         if (!row) return;
         
-        // Get all input values from the row
         const transpoInput = row.querySelector('input[data-field="transpo"]');
         const mealInput = row.querySelector('input[data-field="meal"]');
         const lodgingInput = row.querySelector('input[data-field="lodging"]');
@@ -272,7 +304,7 @@ export class FormView {
             };
         }
 
-        // Input events for expense fields - UPDATE IN REAL TIME
+        // Input events for expense fields
         const expenseInputs = document.querySelectorAll('.expense-input');
         expenseInputs.forEach(input => {
             input.addEventListener('input', (e) => {
@@ -285,15 +317,11 @@ export class FormView {
                     value = value === '' ? 0 : parseFloat(value);
                 }
                 
-                // Update the model
                 if (this.onUpdateExpense) {
                     this.onUpdateExpense(rowIndex, field, value);
                 }
                 
-                // Update the row total immediately
                 this.updateRowTotal(rowIndex);
-                
-                // Update grand total
                 this.updateGrandTotal();
             });
         });
@@ -310,6 +338,27 @@ export class FormView {
                 }
             };
         });
+
+        // Recent records click handlers
+        const recentItems = document.querySelectorAll('.recent-record-item');
+        recentItems.forEach(item => {
+            item.addEventListener('click', async () => {
+                const id = item.dataset.id;
+                if (id && this.onLoadRecord) {
+                    this.onLoadRecord(id);
+                }
+            });
+        });
+
+        // View all records button
+        const viewAllBtn = document.getElementById('viewAllRecordsBtn');
+        if (viewAllBtn) {
+            viewAllBtn.onclick = () => {
+                if (this.onLoadFromCloud) {
+                    this.onLoadFromCloud();
+                }
+            };
+        }
     }
 
     getFormData() {

@@ -16,6 +16,7 @@ export class MainController {
         this.view = new FormView('app');
         this.tableView = null;
         this.isConnected = false;
+        this.recentRecords = [];
         
         this.init();
     }
@@ -31,12 +32,12 @@ export class MainController {
         this.view.onSaveLocal = () => this.handleSaveLocal();
         this.view.onLoadLocal = () => this.handleLoadLocal();
         this.view.onReset = () => this.handleReset();
+        this.view.onLoadRecord = (id) => this.loadRecord(id);
         
         // Model subscription
         this.model.addListener((formData) => {
             const totals = this.model.calculateTotals();
-            this.view.render(formData, totals, this.isConnected);
-            // Recalculate all totals after render
+            this.view.render(formData, totals, this.isConnected, this.recentRecords);
             setTimeout(() => {
                 for (let i = 0; i < formData.expenses.length; i++) {
                     this.view.updateRowTotal(i);
@@ -49,17 +50,51 @@ export class MainController {
         const result = await this.service.init();
         this.isConnected = result.success;
         
+        // Load recent records from cloud automatically
+        if (this.isConnected) {
+            await this.loadRecentRecords();
+        } else {
+            this.loadLocalRecords();
+        }
+        
         // Initial render
         const totals = this.model.calculateTotals();
-        this.view.render(this.model.getFormData(), totals, this.isConnected);
+        this.view.render(this.model.getFormData(), totals, this.isConnected, this.recentRecords);
         
         // Add initial empty expense
         this.model.addExpense(this.model.getEmptyExpense());
         
         if (this.isConnected) {
             this.view.showMessage('Connected to secure cloud storage', 'success');
+            if (this.recentRecords.length > 0) {
+                this.view.showMessage(`Found ${this.recentRecords.length} saved reports. Click any to load.`, 'info');
+            }
         } else {
             this.view.showMessage('Offline mode - using local storage', 'info');
+        }
+    }
+
+    async loadRecentRecords() {
+        const result = await this.service.getAllReports();
+        if (result.success && result.data.length > 0) {
+            this.recentRecords = result.data.slice(0, 5);
+        }
+    }
+
+    loadLocalRecords() {
+        const saved = localStorage.getItem('fso_nexus_backup');
+        if (saved) {
+            const data = JSON.parse(saved);
+            this.recentRecords = [{
+                id: 'local',
+                engineer_name: data.header.fieldEngineerName,
+                coverage_start: data.header.dateCoverageStart,
+                coverage_end: data.header.dateCoverageEnd,
+                cluster: data.header.cluster,
+                date_filed: data.header.dateFiled,
+                team_lead: data.header.teamLead,
+                created_at: data.savedAt
+            }];
         }
     }
 
@@ -82,16 +117,29 @@ export class MainController {
         const expenses = this.model.getExpenses();
         if (expenses[index]) {
             expenses[index][field] = value;
-            // Update totals directly without re-render
             this.view.updateRowTotal(index);
             this.view.updateGrandTotal();
         }
     }
 
     async handleSaveToCloud() {
+        // Get current form data from the view
+        const formData = this.view.getFormData();
+        
+        // Update model with latest form data
+        this.model.setFormData({
+            fieldEngineerName: formData.fieldEngineerName,
+            dateCoverageStart: formData.dateCoverageStart,
+            dateCoverageEnd: formData.dateCoverageEnd,
+            cluster: formData.cluster,
+            dateFiled: formData.dateFiled,
+            teamLead: formData.teamLead,
+            expenses: this.model.getExpenses()
+        });
+        
         const errors = this.model.validate();
         if (errors.length > 0) {
-            this.view.showMessage('Validation Error: ' + errors.join(', '), 'error');
+            this.view.showMessage('Please fill in: ' + errors.join(', '), 'error');
             return;
         }
 
@@ -103,7 +151,6 @@ export class MainController {
 
         this.view.setLoading(true);
         
-        const formData = this.view.getFormData();
         const reportData = {
             engineer_name: formData.fieldEngineerName,
             coverage_start: formData.dateCoverageStart,
@@ -118,9 +165,12 @@ export class MainController {
         const result = await this.service.saveReport(reportData);
         
         if (result.success) {
-            this.view.showMessage('Data synced to cloud successfully!', 'success');
+            this.view.showMessage('Data saved successfully!', 'success');
+            await this.loadRecentRecords();
+            const totals = this.model.calculateTotals();
+            this.view.render(this.model.getFormData(), totals, this.isConnected, this.recentRecords);
         } else {
-            this.view.showMessage('Sync failed: ' + result.error, 'error');
+            this.view.showMessage('Save failed: ' + result.error, 'error');
             this.handleSaveLocal();
         }
         
@@ -146,7 +196,7 @@ export class MainController {
             };
             this.tableView.render(result.data);
         } else if (result.success && result.data.length === 0) {
-            this.view.showMessage('No records found in cloud', 'info');
+            this.view.showMessage('No records found', 'info');
         } else {
             this.view.showMessage('Failed to load: ' + result.error, 'error');
         }
