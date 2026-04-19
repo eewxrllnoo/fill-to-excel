@@ -3,6 +3,10 @@
   "name": "fso-expense-tracker",
   "builds": [
     {
+      "src": "assets/**",
+      "use": "@vercel/static"
+    },
+    {
       "src": "**/*.js",
       "use": "@vercel/static"
     },
@@ -16,6 +20,10 @@
     }
   ],
   "routes": [
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
     {
       "src": "/(.*\\.js)",
       "dest": "/$1",
