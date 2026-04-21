@@ -669,3 +669,195 @@ input[type="date"] {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--dark);
 }
+
+/* Recent Records Panel - CRUD Styles */
+.recent-records-panel {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.recent-records-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #bbf7d0;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.recent-records-header strong {
+    color: #065f46;
+    margin-left: 8px;
+}
+
+.refresh-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #3b82f6;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.refresh-btn:hover {
+    background: #e0f2fe;
+}
+
+.recent-records-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.record-card {
+    background: white;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.record-card:hover {
+    background: #f0fdf4;
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.record-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.record-name {
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: #065f46;
+}
+
+.record-name i {
+    margin-right: 6px;
+}
+
+.record-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 11px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.record-details span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.record-details i {
+    width: 14px;
+    color: #3b82f6;
+}
+
+.record-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.record-view-btn, .record-edit-btn, .record-delete-btn {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+}
+
+.record-view-btn {
+    background: #3b82f6;
+    color: white;
+}
+
+.record-view-btn:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.record-edit-btn {
+    background: #f59e0b;
+    color: white;
+}
+
+.record-edit-btn:hover {
+    background: #d97706;
+    transform: translateY(-1px);
+}
+
+.record-delete-btn {
+    background: #ef4444;
+    color: white;
+}
+
+.record-delete-btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* Scrollbar */
+.recent-records-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.recent-records-list::-webkit-scrollbar-track {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+.recent-records-list::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 10px;
+}
+
+.recent-records-list::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+@media (max-width: 768px) {
+    .record-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .record-actions {
+        justify-content: center;
+    }
+    
+    .record-details {
+        justify-content: center;
+    }
+    
+    .recent-records-header {
+        flex-direction: column;
+        text-align: center;
+    }
+}

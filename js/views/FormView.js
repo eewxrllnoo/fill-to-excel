@@ -7,25 +7,30 @@ export class FormView {
         this.onUpdateExpense = null;
         this.onExport = null;
         this.onSaveToCloud = null;
+        this.onUpdateRecord = null;
+        this.onCancelEdit = null;
         this.onLoadFromCloud = null;
         this.onSaveLocal = null;
         this.onLoadLocal = null;
         this.onReset = null;
         this.onLoadRecord = null;
+        this.onDeleteRecord = null;
+        this.currentEditId = null;
     }
 
     render(formData, totals, isConnected, recentRecords = []) {
         this.container.innerHTML = `
             <div class="header">
-                <div class="logo-container">
-                    <h1>
-                        Based Allowance Replenishment 
-                        <span class="company-name">(Company:
-                        <img src="/assets/logo.png" alt="ACTIUNLABS" class="inline-logo" onerror="this.style.display='none'">)
-                        </span>
-                    </h1>
-                </div>
-            </div>
+    <div class="logo-container">
+        <h1>
+            Based Allowance Replenishment 
+            <span class="company-name">(Company: 
+                <img src="/assets/logo.png" alt="ALS" class="inline-logo" onerror="this.style.display='none'">
+            )</span>
+        </h1>
+    </div>
+</div>
+
 
             ${this.renderRecentRecords(recentRecords)}
 
@@ -67,6 +72,10 @@ export class FormView {
                 </div>
             </div>
 
+            ${this.currentEditId ? `<div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px; padding: 8px 16px; margin-bottom: 16px; text-align: center;">
+                <i class="fas fa-edit"></i> Editing Report #${this.currentEditId} - Make your changes and click "Update Report"
+            </div>` : ''}
+
             <div class="table-container">
                 <table class="data-table">
                     <thead>
@@ -88,7 +97,7 @@ export class FormView {
                             <th>Others</th>
                             <th>Total</th>
                             <th></th>
-                        </tr>
+                        </td>
                     </thead>
                     <tbody id="expenseTableBody">
                         ${this.renderExpenseRows(formData.expenses)}
@@ -109,8 +118,12 @@ export class FormView {
 
             <div class="action-buttons">
                 <button type="button" id="exportExcelBtn" class="btn btn-success">📊 Export to Excel</button>
-                <button type="button" id="saveToCloudBtn" class="btn btn-primary">☁️ Save</button>
-                <button type="button" id="loadFromCloudBtn" class="btn btn-info">📋 View </button>
+                ${this.currentEditId ? 
+                    `<button type="button" id="updateRecordBtn" class="btn btn-primary">✏️ Update Report</button>
+                     <button type="button" id="cancelEditBtn" class="btn btn-warning">❌ Cancel Edit</button>` :
+                    `<button type="button" id="saveToCloudBtn" class="btn btn-primary">☁️ Save</button>`
+                }
+                <button type="button" id="loadFromCloudBtn" class="btn btn-info">📋 View All</button>
                 <button type="button" id="saveLocalBtn" class="btn btn-warning">💾 Save Locally</button>
                 <button type="button" id="loadLocalBtn" class="btn btn-info">📂 Load Local</button>
                 <button type="button" id="resetBtn" class="btn btn-danger">🔄 Reset Form</button>
@@ -124,28 +137,60 @@ export class FormView {
 
     renderRecentRecords(records) {
         if (!records || records.length === 0) {
-            return '';
+            return `
+                <div class="recent-records-panel">
+                    <div class="recent-records-header">
+                        <div>
+                            <i class="fas fa-database"></i>
+                            <strong>Recent Saved Reports</strong>
+                            <span style="font-size: 12px; color: #666;">(0 entries)</span>
+                        </div>
+                        <button type="button" id="refreshRecordsBtn" class="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div style="text-align: center; padding: 20px; color: #666;">
+                        <i class="fas fa-info-circle"></i> No saved records yet. Create your first report!
+                    </div>
+                </div>
+            `;
         }
         
         return `
-            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div class="recent-records-panel">
+                <div class="recent-records-header">
                     <div>
-                        <i class="fas fa-history" style="color: #10b981;"></i>
-                        <strong style="margin-left: 8px; color: #065f46;">Recent Saved Reports</strong>
-                        <span style="margin-left: 8px; font-size: 12px; color: #666;">(Last ${records.length} entries)</span>
+                        <i class="fas fa-database"></i>
+                        <strong>Recent Saved Reports</strong>
+                        <span style="font-size: 12px; color: #666;">(Last ${records.length} entries)</span>
                     </div>
-                    <button type="button" id="viewAllRecordsBtn" class="btn btn-info" style="padding: 6px 12px; font-size: 11px;">
-                        <i class="fas fa-folder-open"></i> View All
+                    <button type="button" id="refreshRecordsBtn" class="refresh-btn">
+                        <i class="fas fa-sync-alt"></i> Refresh
                     </button>
                 </div>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px;">
+                <div class="recent-records-list">
                     ${records.map(record => `
-                        <div class="recent-record-item" data-id="${record.id}" style="background: white; border: 1px solid #bbf7d0; border-radius: 8px; padding: 8px 12px; cursor: pointer; transition: all 0.2s; flex: 1; min-width: 180px;">
-                            <div style="font-weight: 600; font-size: 12px; color: #065f46;">${this.escapeHtml(record.engineer_name)}</div>
-                            <div style="font-size: 10px; color: #666;">📅 ${record.coverage_start || ''} → ${record.coverage_end || ''}</div>
-                            <div style="font-size: 10px; color: #666;">📍 ${this.escapeHtml(record.cluster || '')} | 👤 ${this.escapeHtml(record.team_lead || '')}</div>
-                            <div style="font-size: 10px; color: #888;">💾 ${new Date(record.created_at).toLocaleDateString()}</div>
+                        <div class="record-card" data-id="${record.id}">
+                            <div class="record-info">
+                                <div class="record-name">
+                                    <i class="fas fa-user-circle"></i> 
+                                    <strong>${this.escapeHtml(record.engineer_name || 'Unknown')}</strong>
+                                </div>
+                                <div class="record-details">
+                                    <span><i class="fas fa-calendar"></i> ${record.coverage_start || 'N/A'} → ${record.coverage_end || 'N/A'}</span>
+                                    <span><i class="fas fa-map-marker-alt"></i> ${this.escapeHtml(record.cluster || 'N/A')}</span>
+                                    <span><i class="fas fa-users"></i> ${this.escapeHtml(record.team_lead || 'N/A')}</span>
+                                </div>
+                                <div class="record-details">
+                                    <span><i class="fas fa-chart-line"></i> Total: ₱ ${record.totals?.total || 0}</span>
+                                    <span><i class="fas fa-clock"></i> ${record.created_at ? new Date(record.created_at).toLocaleDateString() : 'N/A'}</span>
+                                </div>
+                            </div>
+                            <div class="record-actions">
+                                <button class="record-view-btn" data-id="${record.id}">View</button>
+                                <button class="record-edit-btn" data-id="${record.id}">Edit</button>
+                                <button class="record-delete-btn" data-id="${record.id}">Delete</button>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -155,7 +200,7 @@ export class FormView {
 
     renderExpenseRows(expenses) {
         if (!expenses || expenses.length === 0) {
-            return `<tr><td colspan="18" style="text-align: center; padding: 30px;">No expense entries. Click "+ Add Expense Entry" to begin.</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></td></tr>`;
+            return `<tr><td colspan="18" style="text-align: center; padding: 30px;">No expense entries. Click "+ Add Expense Entry" to begin.</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span> </span>`;
         }
 
         return expenses.map((expense, index) => {
@@ -264,18 +309,42 @@ export class FormView {
             };
         }
 
-        // Save to Cloud Button
-        const saveCloudBtn = document.getElementById('saveToCloudBtn');
-        if (saveCloudBtn) {
-            saveCloudBtn.onclick = () => {
+        // Save Button (Create new)
+        const saveBtn = document.getElementById('saveToCloudBtn');
+        if (saveBtn) {
+            saveBtn.onclick = () => {
                 if (this.onSaveToCloud) this.onSaveToCloud();
             };
         }
 
-        // Load from Cloud Button
-        const loadCloudBtn = document.getElementById('loadFromCloudBtn');
-        if (loadCloudBtn) {
-            loadCloudBtn.onclick = () => {
+        // Update Button (Edit existing)
+        const updateBtn = document.getElementById('updateRecordBtn');
+        if (updateBtn) {
+            updateBtn.onclick = () => {
+                console.log('Update button clicked, currentEditId:', this.currentEditId);
+                if (this.onUpdateRecord && this.currentEditId) {
+                    this.onUpdateRecord(this.currentEditId);
+                } else {
+                    console.log('onUpdateRecord not set or no currentEditId');
+                }
+            };
+        }
+
+        // Cancel Edit Button
+        const cancelBtn = document.getElementById('cancelEditBtn');
+        if (cancelBtn) {
+            cancelBtn.onclick = () => {
+                this.currentEditId = null;
+                if (this.onCancelEdit) {
+                    this.onCancelEdit();
+                }
+            };
+        }
+
+        // View All Button
+        const viewAllBtn = document.getElementById('loadFromCloudBtn');
+        if (viewAllBtn) {
+            viewAllBtn.onclick = () => {
                 if (this.onLoadFromCloud) this.onLoadFromCloud();
             };
         }
@@ -339,21 +408,47 @@ export class FormView {
             };
         });
 
-        // Recent records click handlers
-        const recentItems = document.querySelectorAll('.recent-record-item');
-        recentItems.forEach(item => {
-            item.addEventListener('click', async () => {
-                const id = item.dataset.id;
+        // Record View buttons
+        const viewBtns = document.querySelectorAll('.record-view-btn');
+        viewBtns.forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
                 if (id && this.onLoadRecord) {
                     this.onLoadRecord(id);
                 }
-            });
+            };
         });
 
-        // View all records button
-        const viewAllBtn = document.getElementById('viewAllRecordsBtn');
-        if (viewAllBtn) {
-            viewAllBtn.onclick = () => {
+        // Record Edit buttons
+        const editBtns = document.querySelectorAll('.record-edit-btn');
+        editBtns.forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                if (id && this.onLoadRecord) {
+                    this.currentEditId = id;
+                    this.onLoadRecord(id);
+                }
+            };
+        });
+
+        // Record Delete buttons
+        const deleteBtns = document.querySelectorAll('.record-delete-btn');
+        deleteBtns.forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                if (id && this.onDeleteRecord) {
+                    this.onDeleteRecord(id);
+                }
+            };
+        });
+
+        // Refresh button
+        const refreshBtn = document.getElementById('refreshRecordsBtn');
+        if (refreshBtn) {
+            refreshBtn.onclick = () => {
                 if (this.onLoadFromCloud) {
                     this.onLoadFromCloud();
                 }

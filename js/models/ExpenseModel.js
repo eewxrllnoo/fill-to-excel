@@ -82,13 +82,21 @@ export class ExpenseModel {
 
     validate() {
         const errors = [];
-        if (!this.formData.fieldEngineerName) errors.push('Engineer Name is required');
-        if (!this.formData.dateCoverageStart) errors.push('Start Date is required');
-        if (!this.formData.dateCoverageEnd) errors.push('End Date is required');
-        if (!this.formData.cluster) errors.push('Cluster is required');
-        if (!this.formData.teamLead) errors.push('Team Lead is required');
-        if (this.formData.expenses.length === 0) errors.push('At least one expense entry is required');
-        
+        if (!this.formData.fieldEngineerName || this.formData.fieldEngineerName.trim() === '') {
+            errors.push('Engineer Name is required');
+        }
+        if (!this.formData.dateCoverageStart || this.formData.dateCoverageStart.trim() === '') {
+            errors.push('Start Date is required');
+        }
+        if (!this.formData.dateCoverageEnd || this.formData.dateCoverageEnd.trim() === '') {
+            errors.push('End Date is required');
+        }
+        if (!this.formData.cluster || this.formData.cluster.trim() === '') {
+            errors.push('Cluster is required');
+        }
+        if (!this.formData.teamLead || this.formData.teamLead.trim() === '') {
+            errors.push('Team Lead is required');
+        }
         return errors;
     }
 

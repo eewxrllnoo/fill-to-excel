@@ -1,4 +1,4 @@
-// View - Handles records modal
+// js/views/TableView.js
 export class TableView {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
@@ -12,7 +12,7 @@ export class TableView {
         modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2><i class="fas fa-history"></i> Cloud Archive</h2>
+                    <h2><i class="fas fa-history"></i> All Saved Reports</h2>
                     <button class="close-modal">&times;</button>
                 </div>
                 <div class="records-list">
@@ -46,7 +46,7 @@ export class TableView {
             <div class="record-item" data-id="${record.id}">
                 <strong><i class="fas fa-user"></i> ${this.escapeHtml(record.engineer_name)}</strong><br>
                 <i class="fas fa-calendar"></i> ${record.coverage_start} → ${record.coverage_end}<br>
-                <i class="fas fa-network-wired"></i> ${this.escapeHtml(record.cluster)} | <i class="fas fa-users"></i> ${this.escapeHtml(record.team_lead)}<br>
+                <i class="fas fa-map-marker-alt"></i> ${this.escapeHtml(record.cluster)} | <i class="fas fa-users"></i> ${this.escapeHtml(record.team_lead)}<br>
                 <i class="fas fa-chart-line"></i> ₱ ${record.totals?.total || 0} | <i class="fas fa-clock"></i> ${new Date(record.created_at).toLocaleDateString()}
             </div>
         `).join('');

@@ -17,22 +17,26 @@ export class MainController {
         this.tableView = null;
         this.isConnected = false;
         this.recentRecords = [];
+        this.currentEditId = null;
         
         this.init();
     }
 
     async init() {
-        // Setup callbacks
+        // Setup all callbacks
         this.view.onAddExpense = () => this.handleAddExpense();
         this.view.onRemoveExpense = (index) => this.handleRemoveExpense(index);
         this.view.onUpdateExpense = (index, field, value) => this.handleUpdateExpense(index, field, value);
         this.view.onExport = () => this.handleExport();
         this.view.onSaveToCloud = () => this.handleSaveToCloud();
+        this.view.onUpdateRecord = (id) => this.handleUpdateRecord(id);
+        this.view.onCancelEdit = () => this.handleCancelEdit();
         this.view.onLoadFromCloud = () => this.handleLoadFromCloud();
         this.view.onSaveLocal = () => this.handleSaveLocal();
         this.view.onLoadLocal = () => this.handleLoadLocal();
         this.view.onReset = () => this.handleReset();
         this.view.onLoadRecord = (id) => this.loadRecord(id);
+        this.view.onDeleteRecord = (id) => this.handleDeleteRecord(id);
         
         // Model subscription
         this.model.addListener((formData) => {
@@ -43,18 +47,16 @@ export class MainController {
                     this.view.updateRowTotal(i);
                 }
                 this.view.updateGrandTotal();
-            }, 50);
+            }, 100);
         });
         
         // Initialize Supabase
         const result = await this.service.init();
         this.isConnected = result.success;
         
-        // Load recent records from cloud automatically
+        // Load recent records
         if (this.isConnected) {
             await this.loadRecentRecords();
-        } else {
-            this.loadLocalRecords();
         }
         
         // Initial render
@@ -65,12 +67,7 @@ export class MainController {
         this.model.addExpense(this.model.getEmptyExpense());
         
         if (this.isConnected) {
-            this.view.showMessage('Connected to secure cloud storage', 'success');
-            if (this.recentRecords.length > 0) {
-                this.view.showMessage(`Found ${this.recentRecords.length} saved reports. Click any to load.`, 'info');
-            }
-        } else {
-            this.view.showMessage('Offline mode - using local storage', 'info');
+            this.view.showMessage('Connected to cloud storage', 'success');
         }
     }
 
@@ -81,31 +78,13 @@ export class MainController {
         }
     }
 
-    loadLocalRecords() {
-        const saved = localStorage.getItem('fso_nexus_backup');
-        if (saved) {
-            const data = JSON.parse(saved);
-            this.recentRecords = [{
-                id: 'local',
-                engineer_name: data.header.fieldEngineerName,
-                coverage_start: data.header.dateCoverageStart,
-                coverage_end: data.header.dateCoverageEnd,
-                cluster: data.header.cluster,
-                date_filed: data.header.dateFiled,
-                team_lead: data.header.teamLead,
-                created_at: data.savedAt
-            }];
-        }
-    }
-
     handleAddExpense() {
         this.model.addExpense(this.model.getEmptyExpense());
         this.view.showMessage('New expense row added', 'info');
     }
 
     handleRemoveExpense(index) {
-        const confirmRemove = confirm('Remove this expense entry?');
-        if (confirmRemove) {
+        if (confirm('Remove this expense entry?')) {
             const expenses = this.model.getExpenses();
             expenses.splice(index, 1);
             this.model.setExpenses(expenses);
@@ -123,10 +102,8 @@ export class MainController {
     }
 
     async handleSaveToCloud() {
-        // Get current form data from the view
         const formData = this.view.getFormData();
         
-        // Update model with latest form data
         this.model.setFormData({
             fieldEngineerName: formData.fieldEngineerName,
             dateCoverageStart: formData.dateCoverageStart,
@@ -171,10 +148,63 @@ export class MainController {
             this.view.render(this.model.getFormData(), totals, this.isConnected, this.recentRecords);
         } else {
             this.view.showMessage('Save failed: ' + result.error, 'error');
-            this.handleSaveLocal();
         }
         
         this.view.setLoading(false);
+    }
+
+    async handleUpdateRecord(id) {
+        console.log('Updating record with ID:', id);
+        
+        const formData = this.view.getFormData();
+        
+        // Remove updated_at - only update existing columns
+        const updateData = {
+            engineer_name: formData.fieldEngineerName,
+            coverage_start: formData.dateCoverageStart,
+            coverage_end: formData.dateCoverageEnd,
+            cluster: formData.cluster,
+            date_filed: formData.dateFiled,
+            team_lead: formData.teamLead,
+            expenses: this.model.getExpenses(),
+            totals: this.model.calculateTotals()
+        };
+        
+        const errors = this.model.validate();
+        if (errors.length > 0) {
+            this.view.showMessage('Please fill in: ' + errors.join(', '), 'error');
+            return;
+        }
+
+        if (!this.isConnected) {
+            this.view.showMessage('Offline mode - cannot update', 'error');
+            return;
+        }
+
+        this.view.setLoading(true);
+        
+        const result = await this.service.updateReport(id, updateData);
+        
+        if (result.success) {
+            this.view.showMessage('Report updated successfully!', 'success');
+            this.currentEditId = null;
+            await this.loadRecentRecords();
+            const totals = this.model.calculateTotals();
+            this.view.render(this.model.getFormData(), totals, this.isConnected, this.recentRecords);
+        } else {
+            this.view.showMessage('Update failed: ' + result.error, 'error');
+        }
+        
+        this.view.setLoading(false);
+    }
+
+    handleCancelEdit() {
+        this.currentEditId = null;
+        this.model.reset();
+        this.model.addExpense(this.model.getEmptyExpense());
+        this.view.showMessage('Edit cancelled', 'info');
+        const totals = this.model.calculateTotals();
+        this.view.render(this.model.getFormData(), totals, this.isConnected, this.recentRecords);
     }
 
     async handleLoadFromCloud() {
@@ -195,21 +225,22 @@ export class MainController {
                 this.tableView = null;
             };
             this.tableView.render(result.data);
-        } else if (result.success && result.data.length === 0) {
-            this.view.showMessage('No records found', 'info');
         } else {
-            this.view.showMessage('Failed to load: ' + result.error, 'error');
+            this.view.showMessage('No records found', 'info');
         }
         
         this.view.setLoading(false);
     }
 
     async loadRecord(id) {
+        console.log('Loading record with ID:', id);
         this.view.setLoading(true);
         const result = await this.service.getReportById(id);
         
         if (result.success && result.data) {
             const record = result.data;
+            console.log('Record loaded:', record);
+            this.currentEditId = id;
             this.model.setFormData({
                 fieldEngineerName: record.engineer_name || '',
                 dateCoverageStart: record.coverage_start || '',
@@ -220,9 +251,34 @@ export class MainController {
                 expenses: record.expenses || []
             });
             this.model.setExpenses(record.expenses || []);
-            this.view.showMessage('Report loaded successfully!', 'success');
+            this.view.showMessage('Report loaded for editing! Click "Update Report" to save changes.', 'success');
         } else {
-            this.view.showMessage('Failed to load record', 'error');
+            this.view.showMessage('Failed to load record: ' + (result.error || 'Unknown error'), 'error');
+        }
+        
+        this.view.setLoading(false);
+    }
+
+    async handleDeleteRecord(id) {
+        console.log('Deleting record with ID:', id);
+        
+        if (!this.isConnected) {
+            this.view.showMessage('Offline mode - cannot delete', 'error');
+            return;
+        }
+        
+        if (!confirm('Delete this record permanently?')) return;
+        
+        this.view.setLoading(true);
+        const result = await this.service.deleteReport(id);
+        
+        if (result.success) {
+            this.view.showMessage('Record deleted!', 'success');
+            await this.loadRecentRecords();
+            const totals = this.model.calculateTotals();
+            this.view.render(this.model.getFormData(), totals, this.isConnected, this.recentRecords);
+        } else {
+            this.view.showMessage('Delete failed: ' + result.error, 'error');
         }
         
         this.view.setLoading(false);
@@ -233,13 +289,13 @@ export class MainController {
         const expenses = this.model.getExpenses();
         const totals = this.model.calculateTotals();
         
-        if (expenses.length === 0 || (expenses.length === 1 && !expenses[0].projectName && !expenses[0].activityDate)) {
+        if (expenses.length === 0) {
             this.view.showMessage('No expense entries to export!', 'error');
             return;
         }
         
         exportToExcel(formData, expenses, totals);
-        this.view.showMessage('Excel report generated successfully!', 'success');
+        this.view.showMessage('Excel report generated!', 'success');
     }
 
     handleSaveLocal() {
@@ -262,17 +318,18 @@ export class MainController {
                 expenses: data.expenses
             });
             this.model.setExpenses(data.expenses);
-            this.view.showMessage('Backup restored successfully!', 'success');
+            this.view.showMessage('Backup restored!', 'success');
         } else {
             this.view.showMessage('No backup found', 'error');
         }
     }
 
     handleReset() {
-        if (confirm('⚠️ This will clear all unsaved data. Continue?')) {
+        if (confirm('Clear all unsaved data?')) {
             this.model.reset();
             this.model.addExpense(this.model.getEmptyExpense());
-            this.view.showMessage('Form has been reset', 'info');
+            this.currentEditId = null;
+            this.view.showMessage('Form reset', 'info');
         }
     }
 }
